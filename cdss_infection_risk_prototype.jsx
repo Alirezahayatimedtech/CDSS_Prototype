@@ -1,0 +1,1154 @@
+import React, { useMemo, useState } from 'react';
+
+const PRESETS = {
+  i4_nominal: {
+    label: 'I4 Nominal',
+    crewId: 'I4-CMO-01',
+    missionDay: 2,
+    mode: 'Routine Surveillance',
+    scenarioType: 'Routine surveillance simulation',
+    datasetGrounding:
+      'Derived from Inspiration4-style OSDR processed signals: OSD-569 whole blood, OSD-570 PBMC, OSD-571 plasma, plus crew-entered symptoms and ops context.',
+    lastReviewNote: 'No unresolved medical concerns. Continue routine surveillance cadence.',
+    priorEpisodes: 0,
+    priorViralReactivationHistory: 0,
+    immuneBaselineShift: 0,
+    recentCountermeasureUse: 'Routine hygiene + sleep plan',
+    feverishness: 0,
+    respiratorySymptoms: 0,
+    giSymptoms: 0,
+    rashOrDermatitis: 0,
+    fatigue: 2,
+    sleepQuality: 7,
+    stressLoad: 4,
+    closeContactExposure: 0,
+    trendWorsening: 0,
+    wholeBloodInflammation: 2,
+    wholeBloodInterferon: 2,
+    pbmcImmuneShift: 2,
+    plasmaAcutePhase: 2,
+    plasmaMetabolicStress: 3,
+    salivaViralSignal: 0,
+    cabinExposureConcern: 1,
+    commDelayMinutes: 0,
+    cmoAvailable: 1,
+    medKitStatus: 'Nominal',
+    isolationCapability: 'Available',
+  },
+  i4_watch: {
+    label: 'I4 Watch',
+    crewId: 'I4-CMO-02',
+    missionDay: 3,
+    mode: 'Watch List',
+    scenarioType: 'Trend flag / watch list simulation',
+    datasetGrounding:
+      'Derived from Inspiration4-style OSDR processed signals: OSD-569 whole blood, OSD-570 PBMC, OSD-571 plasma, plus crew-entered symptoms and ops context.',
+    lastReviewNote: 'Mild immune perturbation pattern emerging across serial checks.',
+    priorEpisodes: 1,
+    priorViralReactivationHistory: 1,
+    immuneBaselineShift: 1,
+    recentCountermeasureUse: 'Enhanced surveillance initiated',
+    feverishness: 3,
+    respiratorySymptoms: 3,
+    giSymptoms: 1,
+    rashOrDermatitis: 0,
+    fatigue: 5,
+    sleepQuality: 5,
+    stressLoad: 6,
+    closeContactExposure: 1,
+    trendWorsening: 1,
+    wholeBloodInflammation: 5,
+    wholeBloodInterferon: 4,
+    pbmcImmuneShift: 6,
+    plasmaAcutePhase: 5,
+    plasmaMetabolicStress: 5,
+    salivaViralSignal: 4,
+    cabinExposureConcern: 3,
+    commDelayMinutes: 0,
+    cmoAvailable: 1,
+    medKitStatus: 'Nominal',
+    isolationCapability: 'Available',
+  },
+  i4_event: {
+    label: 'I4 Medical Event',
+    crewId: 'I4-CMO-03',
+    missionDay: 3,
+    mode: 'Medical Event',
+    scenarioType: 'Escalating medical event simulation',
+    datasetGrounding:
+      'Derived from Inspiration4-style OSDR processed signals: OSD-569 whole blood, OSD-570 PBMC, OSD-571 plasma, plus crew-entered symptoms and ops context.',
+    lastReviewNote: 'Escalating inflammatory and viral-reactivation-like pattern with increasing symptoms.',
+    priorEpisodes: 2,
+    priorViralReactivationHistory: 1,
+    immuneBaselineShift: 1,
+    recentCountermeasureUse: 'Monitoring + infection-control',
+    feverishness: 7,
+    respiratorySymptoms: 6,
+    giSymptoms: 3,
+    rashOrDermatitis: 4,
+    fatigue: 8,
+    sleepQuality: 3,
+    stressLoad: 8,
+    closeContactExposure: 1,
+    trendWorsening: 1,
+    wholeBloodInflammation: 8,
+    wholeBloodInterferon: 7,
+    pbmcImmuneShift: 8,
+    plasmaAcutePhase: 8,
+    plasmaMetabolicStress: 7,
+    salivaViralSignal: 8,
+    cabinExposureConcern: 5,
+    commDelayMinutes: 0,
+    cmoAvailable: 1,
+    medKitStatus: 'Nominal',
+    isolationCapability: 'Available',
+  },
+  i4_respiratory: {
+    label: 'I4 Respiratory',
+    crewId: 'I4-CMO-04',
+    missionDay: 3,
+    mode: 'Medical Event',
+    scenarioType: 'Respiratory infectious-risk simulation',
+    datasetGrounding:
+      'Derived from Inspiration4-style OSDR processed signals: OSD-569 whole blood, OSD-570 PBMC, OSD-571 plasma, plus crew-entered symptoms and ops context.',
+    lastReviewNote: 'Respiratory complaints increasing after previous mild trend flag.',
+    priorEpisodes: 1,
+    priorViralReactivationHistory: 0,
+    immuneBaselineShift: 1,
+    recentCountermeasureUse: 'Monitoring + symptom log',
+    feverishness: 5,
+    respiratorySymptoms: 7,
+    giSymptoms: 1,
+    rashOrDermatitis: 0,
+    fatigue: 6,
+    sleepQuality: 4,
+    stressLoad: 6,
+    closeContactExposure: 1,
+    trendWorsening: 1,
+    wholeBloodInflammation: 6,
+    wholeBloodInterferon: 5,
+    pbmcImmuneShift: 6,
+    plasmaAcutePhase: 6,
+    plasmaMetabolicStress: 5,
+    salivaViralSignal: 3,
+    cabinExposureConcern: 4,
+    commDelayMinutes: 0,
+    cmoAvailable: 1,
+    medKitStatus: 'Nominal',
+    isolationCapability: 'Available',
+  },
+  i4_reactivation: {
+    label: 'I4 Reactivation',
+    crewId: 'I4-CMO-05',
+    missionDay: 3,
+    mode: 'Medical Event',
+    scenarioType: 'Latent viral reactivation simulation',
+    datasetGrounding:
+      'Derived from Inspiration4-style OSDR processed signals: OSD-569 whole blood, OSD-570 PBMC, OSD-571 plasma, plus crew-entered symptoms and ops context.',
+    lastReviewNote: 'Prior reactivation history with new rash and saliva signal.',
+    priorEpisodes: 2,
+    priorViralReactivationHistory: 1,
+    immuneBaselineShift: 1,
+    recentCountermeasureUse: 'Monitoring + skin symptom review',
+    feverishness: 4,
+    respiratorySymptoms: 2,
+    giSymptoms: 0,
+    rashOrDermatitis: 6,
+    fatigue: 6,
+    sleepQuality: 4,
+    stressLoad: 7,
+    closeContactExposure: 0,
+    trendWorsening: 1,
+    wholeBloodInflammation: 5,
+    wholeBloodInterferon: 7,
+    pbmcImmuneShift: 7,
+    plasmaAcutePhase: 5,
+    plasmaMetabolicStress: 5,
+    salivaViralSignal: 8,
+    cabinExposureConcern: 2,
+    commDelayMinutes: 0,
+    cmoAvailable: 1,
+    medKitStatus: 'Nominal',
+    isolationCapability: 'Available',
+  },
+  i4_delay: {
+    label: 'I4 Delayed Downlink',
+    crewId: 'I4-CMO-06',
+    missionDay: 3,
+    mode: 'Medical Event',
+    scenarioType: 'Event with delayed ground consultation',
+    datasetGrounding:
+      'Derived from Inspiration4-style OSDR processed signals: OSD-569 whole blood, OSD-570 PBMC, OSD-571 plasma, plus crew-entered symptoms and ops context.',
+    lastReviewNote: 'Moderate concern with delayed contact to ground support.',
+    priorEpisodes: 1,
+    priorViralReactivationHistory: 0,
+    immuneBaselineShift: 1,
+    recentCountermeasureUse: 'Enhanced surveillance',
+    feverishness: 4,
+    respiratorySymptoms: 5,
+    giSymptoms: 1,
+    rashOrDermatitis: 0,
+    fatigue: 6,
+    sleepQuality: 4,
+    stressLoad: 7,
+    closeContactExposure: 1,
+    trendWorsening: 1,
+    wholeBloodInflammation: 6,
+    wholeBloodInterferon: 4,
+    pbmcImmuneShift: 6,
+    plasmaAcutePhase: 6,
+    plasmaMetabolicStress: 5,
+    salivaViralSignal: 3,
+    cabinExposureConcern: 3,
+    commDelayMinutes: 18,
+    cmoAvailable: 1,
+    medKitStatus: 'Nominal',
+    isolationCapability: 'Available',
+  },
+  i4_constrained: {
+    label: 'I4 Constrained',
+    crewId: 'I4-CMO-07',
+    missionDay: 3,
+    mode: 'Medical Event',
+    scenarioType: 'CMO unavailable / med-kit constrained simulation',
+    datasetGrounding:
+      'Derived from Inspiration4-style OSDR processed signals: OSD-569 whole blood, OSD-570 PBMC, OSD-571 plasma, plus crew-entered symptoms and ops context.',
+    lastReviewNote: 'Escalation during constrained operational support window.',
+    priorEpisodes: 2,
+    priorViralReactivationHistory: 1,
+    immuneBaselineShift: 1,
+    recentCountermeasureUse: 'Monitoring + infection-control',
+    feverishness: 6,
+    respiratorySymptoms: 6,
+    giSymptoms: 2,
+    rashOrDermatitis: 2,
+    fatigue: 8,
+    sleepQuality: 3,
+    stressLoad: 8,
+    closeContactExposure: 1,
+    trendWorsening: 1,
+    wholeBloodInflammation: 7,
+    wholeBloodInterferon: 6,
+    pbmcImmuneShift: 8,
+    plasmaAcutePhase: 7,
+    plasmaMetabolicStress: 7,
+    salivaViralSignal: 5,
+    cabinExposureConcern: 4,
+    commDelayMinutes: 12,
+    cmoAvailable: 0,
+    medKitStatus: 'Limited',
+    isolationCapability: 'Unavailable',
+  },
+};
+
+const SELF_TESTS = [
+  { name: 'Nominal preset exists', pass: !!PRESETS.i4_nominal },
+  { name: 'Watch preset exists', pass: !!PRESETS.i4_watch },
+  { name: 'Constrained preset exists', pass: !!PRESETS.i4_constrained },
+];
+
+const severityStyles = {
+  Low: 'bg-green-100 text-green-800 border-green-200',
+  Moderate: 'bg-amber-100 text-amber-800 border-amber-200',
+  High: 'bg-red-100 text-red-800 border-red-200',
+};
+
+const missionPriorityStyles = {
+  Monitor: 'bg-slate-100 text-slate-700',
+  Review: 'bg-amber-100 text-amber-800',
+  Immediate: 'bg-red-100 text-red-800',
+};
+
+function scoreBand(score) {
+  if (score >= 50) return 'High';
+  if (score >= 28) return 'Moderate';
+  return 'Low';
+}
+
+function missionPriorityForBand(band) {
+  if (band === 'High') return 'Immediate';
+  if (band === 'Moderate') return 'Review';
+  return 'Monitor';
+}
+
+export default function CDSSInfectionRiskPrototype() {
+  const [state, setState] = useState(PRESETS.i4_watch);
+  const [activeTab, setActiveTab] = useState('surveillance');
+  const [expandedAgents, setExpandedAgents] = useState({});
+  const [copyFeedback, setCopyFeedback] = useState('idle');
+
+  const toggleAgent = (name) => {
+    setExpandedAgents((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  const setField = (key, value) => {
+    setState((prev) => {
+      if (typeof value === 'number' && !Number.isFinite(value)) return prev;
+      return { ...prev, [key]: value };
+    });
+  };
+
+  const loadPreset = (presetKey) => {
+    setState(PRESETS[presetKey]);
+  };
+
+  const biomarkerAgent = useMemo(() => {
+    let score = 0;
+    const drivers = [];
+    const add = (points, label) => {
+      score += points;
+      drivers.push({ label, points, source: 'Biomarker agent' });
+    };
+
+    if (state.wholeBloodInflammation >= 8) add(18, 'Whole blood inflammatory signature strongly elevated');
+    else if (state.wholeBloodInflammation >= 5) add(10, 'Whole blood inflammatory signature moderately elevated');
+
+    if (state.wholeBloodInterferon >= 7) add(12, 'Whole blood antiviral/interferon signature elevated');
+    else if (state.wholeBloodInterferon >= 4) add(6, 'Whole blood interferon pattern mildly elevated');
+
+    if (state.pbmcImmuneShift >= 8) add(18, 'PBMC immune-state deviation strongly elevated');
+    else if (state.pbmcImmuneShift >= 5) add(10, 'PBMC immune-state deviation moderately elevated');
+
+    if (state.plasmaAcutePhase >= 8) add(16, 'Plasma acute-phase response elevated');
+    else if (state.plasmaAcutePhase >= 5) add(8, 'Plasma acute-phase response mildly elevated');
+
+    if (state.plasmaMetabolicStress >= 7) add(8, 'Plasma metabolic stress pattern elevated');
+    else if (state.plasmaMetabolicStress >= 5) add(4, 'Mild metabolic stress signal');
+
+    if (state.salivaViralSignal >= 7) add(18, 'Saliva viral shedding/reactivation signal elevated');
+    else if (state.salivaViralSignal >= 4) add(10, 'Mild saliva viral signal detected');
+
+    if (state.immuneBaselineShift) add(8, 'Persistent deviation from personal baseline');
+
+    const clipped = Math.min(100, score);
+    const topDrivers = [...drivers].sort((a, b) => b.points - a.points).slice(0, 4);
+
+    let summary = 'Biomarker agent finds limited evidence of current infectious-risk escalation.';
+    if (clipped >= 55) summary = 'Biomarker agent finds strong multimodal evidence of immune perturbation.';
+    else if (clipped >= 30) summary = 'Biomarker agent finds moderate evidence of immune perturbation.';
+
+    return { score: clipped, topDrivers, summary };
+  }, [state]);
+
+  const contextAgent = useMemo(() => {
+    let score = 0;
+    const drivers = [];
+    const add = (points, label) => {
+      score += points;
+      drivers.push({ label, points, source: 'Context agent' });
+    };
+
+    if (state.feverishness >= 7) add(18, 'Crew reports strong feverishness');
+    else if (state.feverishness >= 4) add(8, 'Crew reports mild feverishness');
+
+    if (state.respiratorySymptoms >= 7) add(14, 'Respiratory symptom burden high');
+    else if (state.respiratorySymptoms >= 4) add(7, 'Respiratory symptom burden moderate');
+
+    if (state.giSymptoms >= 5) add(8, 'GI symptom burden notable');
+    else if (state.giSymptoms >= 2) add(3, 'GI symptoms mild');
+
+    if (state.rashOrDermatitis >= 4) add(7, 'Dermatitis/rash may be consistent with reactivation-related concern');
+
+    if (state.fatigue >= 7) add(8, 'Fatigue burden high');
+    else if (state.fatigue >= 4) add(4, 'Fatigue burden moderate');
+
+    if (state.sleepQuality <= 3) add(8, 'Sleep degradation may increase susceptibility');
+    else if (state.sleepQuality <= 5) add(4, 'Sleep quality reduced');
+
+    if (state.stressLoad >= 8) add(8, 'Stress load high');
+    else if (state.stressLoad >= 6) add(4, 'Stress load moderate');
+
+    if (state.closeContactExposure) add(6, 'Recent close-contact exposure reported');
+    if (state.trendWorsening) add(10, 'Symptoms worsening across serial checks');
+    if (state.priorEpisodes >= 2) add(5, 'Multiple prior immune-risk episodes this mission');
+    else if (state.priorEpisodes === 1) add(2, 'One prior immune-risk episode this mission');
+    if (state.priorViralReactivationHistory) add(5, 'History of viral reactivation during mission');
+    if (state.cabinExposureConcern >= 5) add(5, 'Cabin exposure concern elevated');
+    else if (state.cabinExposureConcern >= 3) add(2, 'Cabin exposure concern mild');
+
+    const clipped = Math.min(100, score);
+    const topDrivers = [...drivers].sort((a, b) => b.points - a.points).slice(0, 4);
+
+    let summary = 'Context agent finds limited operational evidence of acute infectious concern.';
+    if (clipped >= 50) summary = 'Context agent finds strong symptom and exposure evidence of concern.';
+    else if (clipped >= 28) summary = 'Context agent finds moderate symptom and exposure evidence of concern.';
+
+    return { score: clipped, topDrivers, summary };
+  }, [state]);
+
+  const exposureAgent = useMemo(() => {
+    let score = 0;
+    const drivers = [];
+    const add = (points, label) => {
+      score += points;
+      drivers.push({ label, points, source: 'Exposure agent' });
+    };
+
+    if (state.closeContactExposure) add(7, 'Recent close-contact exposure');
+    if (state.trendWorsening) add(10, 'Worsening trend across serial checks');
+    if (state.priorEpisodes >= 2) add(5, 'Multiple prior immune-risk episodes');
+    else if (state.priorEpisodes === 1) add(2, 'One prior immune-risk episode');
+    if (state.priorViralReactivationHistory) add(5, 'Prior viral reactivation history');
+    if (state.cabinExposureConcern >= 5) add(6, 'Cabin exposure concern high');
+    else if (state.cabinExposureConcern >= 3) add(3, 'Cabin exposure concern mild');
+
+    const clipped = Math.min(100, score);
+    const topDrivers = [...drivers].sort((a, b) => b.points - a.points).slice(0, 4);
+
+    let summary = 'Exposure agent finds limited contextual exposure concern.';
+    if (clipped >= 20) summary = 'Exposure agent finds moderate contextual exposure concern.';
+    if (clipped >= 28) summary = 'Exposure agent finds strong trend and exposure concern.';
+
+    return { score: clipped, topDrivers, summary };
+  }, [state]);
+
+  const syndromeAgent = useMemo(() => {
+    const patterns = [];
+
+    if (state.salivaViralSignal >= 7 && state.rashOrDermatitis >= 4) {
+      patterns.push({ label: 'Possible viral reactivation event', confidence: 'High', reason: 'Strong saliva viral signal plus rash/dermatitis.' });
+    }
+    if (state.respiratorySymptoms >= 4 && state.wholeBloodInflammation >= 5) {
+      patterns.push({ label: 'Possible respiratory infectious-risk pattern', confidence: 'Moderate', reason: 'Respiratory burden with inflammatory signature.' });
+    }
+    if (state.pbmcImmuneShift >= 5 || state.plasmaAcutePhase >= 5 || state.wholeBloodInflammation >= 5) {
+      patterns.push({ label: 'Immune dysregulation / early infectious-risk watch', confidence: 'Moderate', reason: 'Immune-state deviation without a single dominant syndrome.' });
+    }
+    if (patterns.length === 0) {
+      patterns.push({ label: 'No strong syndrome flag', confidence: 'Low', reason: 'Current inputs do not strongly match a predefined syndrome.' });
+    }
+
+    const topPattern = patterns[0];
+    const score = topPattern.confidence === 'High' ? 80 : topPattern.confidence === 'Moderate' ? 55 : 20;
+    return {
+      score,
+      topPattern: topPattern.label,
+      summary: topPattern.reason,
+      topDrivers: [{ label: topPattern.label, points: topPattern.confidence === 'High' ? 12 : topPattern.confidence === 'Moderate' ? 8 : 3, source: 'Syndrome agent' }],
+    };
+  }, [state]);
+
+  const operationsAgent = useMemo(() => {
+    let autonomyNeed = 0;
+    const notes = [];
+
+    if (state.commDelayMinutes >= 10) {
+      autonomyNeed += 15;
+      notes.push('Significant communication delay increases onboard autonomy requirement.');
+    } else if (state.commDelayMinutes > 0) {
+      autonomyNeed += 6;
+      notes.push('Partial communication delay may slow ground consultation.');
+    } else {
+      notes.push('Near-real-time communication available.');
+    }
+
+    if (!state.cmoAvailable) {
+      autonomyNeed += 15;
+      notes.push('Crew Medical Officer unavailable, increasing need for guided support.');
+    } else {
+      notes.push('Crew Medical Officer available for guided execution.');
+    }
+
+    if (state.medKitStatus === 'Limited') {
+      autonomyNeed += 8;
+      notes.push('Medical kit constraints should affect recommendations.');
+    } else {
+      notes.push('Medical kit status nominal for current scenario.');
+    }
+
+    if (state.isolationCapability === 'Unavailable') {
+      autonomyNeed += 6;
+      notes.push('Isolation options constrained by vehicle operations.');
+    } else {
+      notes.push('Isolation and distancing options are available if needed.');
+    }
+
+    return {
+      score: Math.min(100, autonomyNeed),
+      notes,
+      summary:
+        autonomyNeed >= 20
+          ? 'Operations agent indicates elevated need for onboard autonomous decision support.'
+          : 'Operations agent indicates nominal onboard support conditions.',
+    };
+  }, [state]);
+
+  const analysis = useMemo(() => {
+    const biomarkerHandoff = {
+      agent: 'Biomarker agent',
+      score: biomarkerAgent.score,
+      confidence: biomarkerAgent.score >= 55 ? 'High' : biomarkerAgent.score >= 30 ? 'Moderate' : 'Low',
+      keySignals: biomarkerAgent.topDrivers.map((d) => d.label),
+      assessment: biomarkerAgent.summary,
+      reasoningTrace: [
+        'Read whole-blood inflammatory and interferon-derived features.',
+        'Read PBMC immune-shift feature against personal baseline.',
+        'Read plasma acute-phase and metabolic-stress derived features.',
+        'Integrated saliva viral signal into biomarker evidence summary.',
+      ],
+      recommendedNextStep: biomarkerAgent.score >= 55 ? 'Repeat biomarker confirmation and escalate for review.' : 'Continue biomarker trend tracking.',
+    };
+
+    const contextHandoff = {
+      agent: 'Context agent',
+      score: contextAgent.score,
+      confidence: contextAgent.score >= 50 ? 'High' : contextAgent.score >= 28 ? 'Moderate' : 'Low',
+      keySignals: contextAgent.topDrivers.map((d) => d.label),
+      assessment: contextAgent.summary,
+      reasoningTrace: [
+        'Scored feverishness, respiratory, GI, dermatologic, and fatigue burden.',
+        'Adjusted for sleep degradation and stress load.',
+        'Integrated serial trend flag and recent symptom evolution.',
+      ],
+      recommendedNextStep: contextAgent.score >= 50 ? 'Prompt clinical review of reported symptoms and fatigue burden.' : 'Maintain symptom logging cadence.',
+    };
+
+    const exposureHandoff = {
+      agent: 'Exposure agent',
+      score: exposureAgent.score,
+      confidence: exposureAgent.score >= 28 ? 'High' : exposureAgent.score >= 20 ? 'Moderate' : 'Low',
+      keySignals: exposureAgent.topDrivers.map((d) => d.label),
+      assessment: exposureAgent.summary,
+      reasoningTrace: [
+        'Checked recent close-contact and cabin-exposure indicators.',
+        'Reviewed prior mission episodes and reactivation history.',
+        'Weighted worsening trend across serial checks.',
+      ],
+      recommendedNextStep: exposureAgent.score >= 20 ? 'Review exposure chain and recent mission interactions.' : 'No major exposure-driven action indicated.',
+    };
+
+    const syndromeHandoff = {
+      agent: 'Syndrome agent',
+      score: syndromeAgent.score,
+      confidence: syndromeAgent.score >= 80 ? 'High' : syndromeAgent.score >= 55 ? 'Moderate' : 'Low',
+      keySignals: syndromeAgent.topDrivers.map((d) => d.label),
+      assessment: syndromeAgent.summary,
+      topPattern: syndromeAgent.topPattern,
+      reasoningTrace: [
+        'Matched current evidence against predefined infectious-risk scenarios.',
+        'Checked for viral-reactivation pattern, respiratory pattern, and nonspecific immune dysregulation.',
+        'Selected highest-priority syndrome candidate for orchestration.',
+      ],
+      recommendedNextStep: syndromeAgent.score >= 55 ? 'Use syndrome-specific checklist and targeted reassessment.' : 'Continue general infectious-risk surveillance.',
+    };
+
+    const operationsHandoff = {
+      agent: 'Operations agent',
+      score: operationsAgent.score,
+      confidence: operationsAgent.score >= 20 ? 'High' : operationsAgent.score >= 8 ? 'Moderate' : 'Low',
+      keySignals: operationsAgent.notes,
+      assessment: operationsAgent.summary,
+      reasoningTrace: [
+        'Checked communication-delay impact on Earth support.',
+        'Checked Crew Medical Officer availability and med-kit constraints.',
+        'Checked isolation feasibility and vehicle operations constraints.',
+      ],
+      recommendedNextStep: operationsAgent.score >= 20 ? 'Prioritize autonomous onboard guidance due to operational constraints.' : 'Ground-assisted workflow remains feasible.',
+    };
+
+    const agentHandoffs = [biomarkerHandoff, contextHandoff, exposureHandoff, syndromeHandoff, operationsHandoff];
+    const integratedScore = Math.min(100, Math.round(
+      4.98 +
+      biomarkerAgent.score * 0.41 +
+      contextAgent.score * 0.34 +
+      exposureAgent.score * 0.04 +
+      operationsAgent.score * 0.06 +
+      syndromeAgent.score * 0.20
+    ));
+    const evidenceCount = biomarkerAgent.topDrivers.length + contextAgent.topDrivers.length + exposureAgent.topDrivers.length + syndromeAgent.topDrivers.length;
+    const agreementGap = Math.abs(biomarkerAgent.score - contextAgent.score);
+
+    let confidence = 'Moderate';
+    if (agreementGap <= 12 && evidenceCount >= 5) confidence = 'High';
+    else if (agreementGap >= 28 || evidenceCount <= 2) confidence = 'Low';
+
+    const band = scoreBand(integratedScore);
+    const missionPriority = missionPriorityForBand(band);
+    const syndrome = syndromeAgent.topPattern;
+
+    const allDrivers = [...biomarkerAgent.topDrivers, ...contextAgent.topDrivers, ...exposureAgent.topDrivers, ...syndromeAgent.topDrivers]
+      .sort((a, b) => b.points - a.points)
+      .slice(0, 6);
+
+    const confirmatoryActions =
+      band === 'Low'
+        ? ['Continue routine surveillance cadence.', 'Recheck crew-entered symptoms at next scheduled medical review.']
+        : band === 'Moderate'
+          ? ['Repeat symptom review within 12–24 hours.', 'Repeat available biomarker collection or simplified reassessment.', 'Review recent exposure chain and environmental hygiene status.']
+          : ['Repeat confirmatory assessment as soon as feasible.', 'Review whether crew member should limit discretionary close contact.', 'Package case summary for expedited medical downlink.'];
+
+    const countermeasures =
+      band === 'Low'
+        ? ['Maintain routine hygiene, hydration, and sleep countermeasures.', 'No operational restriction indicated.', 'Continue normal work schedule with routine surveillance.']
+        : band === 'Moderate'
+          ? ['Increase monitoring frequency and symptom logging.', 'Adopt enhanced masking/distancing if operationally feasible.', 'Shift to conservative workload plan until next reassessment.', 'Prepare just-in-time review for infection-control procedures.']
+          : ['Immediate Crew Medical Officer review.', 'Enhanced infection-control precautions and reduced close contact.', 'Prioritize downlink to ground medical support when communication permits.', 'Consider temporary task reassignment or workload reduction.'];
+
+    const jitTraining =
+      band === 'Low'
+        ? ['Routine self-monitoring checklist']
+        : band === 'Moderate'
+          ? ['Symptom re-check protocol', 'Sample collection refresher', 'Infection-control checklist']
+          : ['Medical event checklist', 'Repeat sample collection guide', 'Isolation / crew protection checklist', 'Ground handoff summary checklist'];
+
+    const timeline = [
+      { day: Math.max(0, state.missionDay - 2), label: 'Pre-flag review', score: Math.max(6, integratedScore - (state.trendWorsening ? 18 : 8)) },
+      { day: Math.max(0, state.missionDay - 1), label: 'Prior surveillance', score: Math.max(10, integratedScore - (state.trendWorsening ? 10 : 4)) },
+      { day: state.missionDay, label: 'Current assessment', score: integratedScore },
+    ];
+
+    const conopsScenarios = [
+      { title: 'Routine surveillance', active: state.mode === 'Routine Surveillance', detail: 'Scheduled health review with low decision burden.' },
+      { title: 'Trend flag / watch list', active: state.mode === 'Watch List' || !!state.trendWorsening, detail: 'Serial checks identify deviation from baseline and trigger closer review.' },
+      { title: 'Medical event workup', active: state.mode === 'Medical Event', detail: 'Escalation from monitoring into event-focused assessment and management.' },
+      { title: 'Delayed ground support', active: state.commDelayMinutes > 0, detail: 'Onboard guidance carries more decision weight when downlink is delayed.' },
+      { title: 'Constrained support', active: !state.cmoAvailable || state.medKitStatus === 'Limited' || state.isolationCapability === 'Unavailable', detail: 'Recommendations adapt to personnel, resource, and vehicle constraints.' },
+    ];
+
+    const modularBlocks = [
+      'Input adapters: Inspiration4-style processed blood, PBMC, plasma, saliva, symptom logs, and operations context.',
+      'Evidence agents: biomarker, context, exposure, syndrome, and operations.',
+      'Orchestrator: weighted fusion, confidence, and mission-priority assignment.',
+      'Action layer: confirmatory actions, countermeasures, JIT training, and downlink summary.',
+    ];
+
+    const conopsFlow = [
+      { step: 'Detect', status: 'complete', detail: 'Integrated system ingested current crew state and derived multimodal signals.' },
+      { step: 'Characterize', status: 'complete', detail: `${syndrome} based on biomarker + symptom/context fusion.` },
+      { step: 'Triage', status: 'complete', detail: `${band} risk with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.` },
+      { step: 'Recommend', status: 'complete', detail: countermeasures[0] },
+      { step: 'Execute', status: band === 'High' ? 'action' : band === 'Moderate' ? 'watch' : 'routine', detail: confirmatoryActions[0] },
+      { step: 'Communicate', status: state.commDelayMinutes > 0 || band === 'High' ? 'action' : 'routine', detail: state.commDelayMinutes > 0 ? `Ground support delayed by ~${state.commDelayMinutes} min.` : 'Downlink optional unless trend worsens.' },
+    ];
+
+    const patientHistory = [
+      { label: 'Crew profile', value: state.label },
+      { label: 'Scenario', value: state.scenarioType },
+      { label: 'Mission mode', value: state.mode },
+      { label: 'Dataset grounding', value: state.datasetGrounding },
+      { label: 'Prior immune-risk episodes', value: String(state.priorEpisodes) },
+      { label: 'Prior viral reactivation history', value: state.priorViralReactivationHistory ? 'Present' : 'Not documented' },
+      { label: 'Persistent baseline shift', value: state.immuneBaselineShift ? 'Yes' : 'No' },
+      { label: 'Recent countermeasure status', value: state.recentCountermeasureUse },
+      { label: 'Last review note', value: state.lastReviewNote },
+    ];
+
+    const orchestratorHandoff = {
+      orchestrator: 'Decision fusion layer',
+      inputsReceived: agentHandoffs.map((a) => ({ agent: a.agent, score: a.score, confidence: a.confidence })),
+      mergedAssessment: syndrome,
+      riskBand: band,
+      integratedScore,
+      confidence,
+      missionPriority,
+      decisionSummary: `Integrated ${band.toLowerCase()} infectious-risk assessment with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.`,
+      nextAction: confirmatoryActions[0],
+      countermeasureLead: countermeasures[0],
+    };
+
+    const finalRecommendationObject = {
+      recipient: 'Crew Medical Officer',
+      scenario: state.scenarioType || state.mode,
+      crewId: state.crewId,
+      missionDay: state.missionDay,
+      probablePattern: syndrome,
+      riskBand: band,
+      confidence,
+      missionPriority,
+      immediateActions: confirmatoryActions,
+      countermeasures,
+      jitTraining,
+      communicationPlan: state.commDelayMinutes > 0 ? `Prepare onboard execution first; expected ground delay ~${state.commDelayMinutes} min.` : 'Ground consultation available if escalation is needed.',
+    };
+
+    const downlink = [
+      `Crew ID: ${state.crewId}`,
+      `Mission day: ${state.missionDay}`,
+      `Mode: ${state.mode}`,
+      `Risk band: ${band}`,
+      `Integrated score: ${integratedScore}/100`,
+      `Confidence: ${confidence}`,
+      `Probable syndrome: ${syndrome}`,
+      `Mission priority: ${missionPriority}`,
+      `Top drivers: ${allDrivers.slice(0, 3).map((d) => d.label).join('; ') || 'none'}`,
+      `Biomarker agent: ${biomarkerAgent.summary}`,
+      `Context agent: ${contextAgent.summary}`,
+      `Operations agent: ${operationsAgent.summary}`,
+      `Immediate action: ${confirmatoryActions[0]}`,
+      `Primary countermeasure: ${countermeasures[0]}`,
+    ].join('\n');
+
+    return {
+      integratedScore,
+      band,
+      confidence,
+      syndrome,
+      missionPriority,
+      allDrivers,
+      confirmatoryActions,
+      countermeasures,
+      jitTraining,
+      timeline,
+      conopsScenarios,
+      modularBlocks,
+      conopsFlow,
+      patientHistory,
+      agentHandoffs,
+      orchestratorHandoff,
+      finalRecommendationObject,
+      downlink,
+    };
+  }, [state, biomarkerAgent, contextAgent, exposureAgent, syndromeAgent, operationsAgent]);
+
+  const handleCopySummary = async () => {
+    if (!navigator?.clipboard?.writeText) {
+      setCopyFeedback('unsupported');
+      window.setTimeout(() => setCopyFeedback('idle'), 2500);
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(analysis.downlink);
+      setCopyFeedback('copied');
+    } catch {
+      setCopyFeedback('error');
+    }
+
+    window.setTimeout(() => setCopyFeedback('idle'), 2500);
+  };
+
+  const card = 'rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200';
+  const inputClass = 'w-full rounded-xl border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400';
+
+  const NumberField = ({ label, value, min = 0, max = 10, step = 1, onChange }) => (
+    <label className="block space-y-1">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (raw === '') return;
+          const parsed = Number(raw);
+          if (!Number.isFinite(parsed)) return;
+          const clamped = Math.min(max, Math.max(min, parsed));
+          onChange(clamped);
+        }}
+        className={inputClass}
+      />
+    </label>
+  );
+
+  const ToggleField = ({ label, value, onChange }) => (
+    <label className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <button type="button" onClick={() => onChange(value ? 0 : 1)} className={`rounded-full px-3 py-1 text-sm font-medium ${value ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>
+        {value ? 'Yes' : 'No'}
+      </button>
+    </label>
+  );
+
+  const SelectField = ({ label, value, options, onChange }) => (
+    <label className="block space-y-1">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <select className={inputClass} value={value} onChange={(e) => onChange(e.target.value)}>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+
+  const TimelineBar = ({ item, current }) => (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <span>{item.label}</span>
+        <span>FD {item.day}</span>
+      </div>
+      <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+        <div className={`h-full ${item.score >= 68 ? 'bg-red-500' : item.score >= 36 ? 'bg-amber-500' : 'bg-green-500'}`} style={{ width: `${item.score}%` }} />
+      </div>
+      <div className="text-sm font-medium text-slate-700">{item.score}/100 {current ? '• current' : ''}</div>
+    </div>
+  );
+
+  const SurveillanceView = () => (
+    <>
+      <div className="space-y-6 xl:col-span-2">
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Mission and crew context</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-slate-700">Crew ID</span>
+              <input className={inputClass} value={state.crewId} onChange={(e) => setField('crewId', e.target.value)} />
+            </label>
+            <NumberField label="Mission day" value={state.missionDay} min={0} max={10} onChange={(v) => setField('missionDay', v)} />
+            <SelectField label="Mission mode" value={state.mode} options={['Routine Surveillance', 'Watch List', 'Medical Event']} onChange={(v) => setField('mode', v)} />
+            <NumberField label="Comm delay (min)" value={state.commDelayMinutes} min={0} max={30} onChange={(v) => setField('commDelayMinutes', v)} />
+            <SelectField label="Medical kit status" value={state.medKitStatus} options={['Nominal', 'Limited']} onChange={(v) => setField('medKitStatus', v)} />
+            <SelectField label="Isolation capability" value={state.isolationCapability} options={['Available', 'Unavailable']} onChange={(v) => setField('isolationCapability', v)} />
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <ToggleField label="Crew Medical Officer available" value={state.cmoAvailable} onChange={(v) => setField('cmoAvailable', v)} />
+            <ToggleField label="Trend worsening across checks" value={state.trendWorsening} onChange={(v) => setField('trendWorsening', v)} />
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Crew-reported clinical presentation</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <NumberField label="Feverishness (0–10)" value={state.feverishness} onChange={(v) => setField('feverishness', v)} />
+            <NumberField label="Respiratory symptoms (0–10)" value={state.respiratorySymptoms} onChange={(v) => setField('respiratorySymptoms', v)} />
+            <NumberField label="GI symptoms (0–10)" value={state.giSymptoms} onChange={(v) => setField('giSymptoms', v)} />
+            <NumberField label="Rash / dermatitis (0–10)" value={state.rashOrDermatitis} onChange={(v) => setField('rashOrDermatitis', v)} />
+            <NumberField label="Fatigue (0–10)" value={state.fatigue} onChange={(v) => setField('fatigue', v)} />
+            <NumberField label="Sleep quality (0–10)" value={state.sleepQuality} onChange={(v) => setField('sleepQuality', v)} />
+            <NumberField label="Stress load (0–10)" value={state.stressLoad} onChange={(v) => setField('stressLoad', v)} />
+            <NumberField label="Cabin exposure concern (0–10)" value={state.cabinExposureConcern} onChange={(v) => setField('cabinExposureConcern', v)} />
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <ToggleField label="Recent close-contact exposure" value={state.closeContactExposure} onChange={(v) => setField('closeContactExposure', v)} />
+            <ToggleField label="Persistent immune baseline shift documented" value={state.immuneBaselineShift} onChange={(v) => setField('immuneBaselineShift', v)} />
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Derived Inspiration4-style biomarker features</h2>
+          <p className="mb-4 text-sm text-slate-600">These are mission-facing derived scores rather than raw lab files: whole-blood, PBMC, plasma, and saliva-style signals abstracted from processed data into interpretable onboard features.</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <NumberField label="Whole blood inflammation" value={state.wholeBloodInflammation} onChange={(v) => setField('wholeBloodInflammation', v)} />
+            <NumberField label="Whole blood interferon" value={state.wholeBloodInterferon} onChange={(v) => setField('wholeBloodInterferon', v)} />
+            <NumberField label="PBMC immune shift" value={state.pbmcImmuneShift} onChange={(v) => setField('pbmcImmuneShift', v)} />
+            <NumberField label="Plasma acute phase" value={state.plasmaAcutePhase} onChange={(v) => setField('plasmaAcutePhase', v)} />
+            <NumberField label="Plasma metabolic stress" value={state.plasmaMetabolicStress} onChange={(v) => setField('plasmaMetabolicStress', v)} />
+            <NumberField label="Saliva viral signal" value={state.salivaViralSignal} onChange={(v) => setField('salivaViralSignal', v)} />
+            <NumberField label="Prior immune-risk episodes" value={state.priorEpisodes} min={0} max={5} onChange={(v) => setField('priorEpisodes', v)} />
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <ToggleField label="Prior viral reactivation history" value={state.priorViralReactivationHistory} onChange={(v) => setField('priorViralReactivationHistory', v)} />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6 xl:col-span-1">
+        <div className={card}>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xl font-semibold">Integrated CDSS output</h2>
+            <div className={`rounded-2xl border px-3 py-1 text-sm font-semibold ${severityStyles[analysis.band]}`}>{analysis.band} risk</div>
+          </div>
+          <div className="mt-5">
+            <div className="text-sm text-slate-500">Integrated score</div>
+            <div className="mt-1 text-5xl font-bold tracking-tight">{analysis.integratedScore}</div>
+            <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
+              <div className={`h-full ${analysis.band === 'Low' ? 'bg-green-500' : analysis.band === 'Moderate' ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${analysis.integratedScore}%` }} />
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Confidence: {analysis.confidence}</div>
+            <div className={`rounded-full px-3 py-1 text-xs font-semibold ${missionPriorityStyles[analysis.missionPriority]}`}>Priority: {analysis.missionPriority}</div>
+          </div>
+          <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+            <div className="font-semibold text-slate-900">Most likely pattern</div>
+            <p className="mt-2">{analysis.syndrome}</p>
+          </div>
+        </div>
+
+        <div className={card}>
+          <h3 className="text-lg font-semibold">Crew risk timeline</h3>
+          <div className="mt-4 space-y-4">
+            {analysis.timeline.map((item, idx) => <TimelineBar key={`${item.label}-${item.day}-${idx}`} item={item} current={idx === analysis.timeline.length - 1} />)}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h3 className="text-lg font-semibold">Top drivers</h3>
+          <div className="mt-4 space-y-3">
+            {analysis.allDrivers.map((driver, index) => (
+              <div key={`${driver.label}-${index}`} className="rounded-2xl bg-slate-50 px-3 py-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-slate-800">{driver.label}</span>
+                  <span className="rounded-full bg-slate-900 px-2 py-1 text-xs font-semibold text-white">+{driver.points}</span>
+                </div>
+                <div className="mt-1 text-xs text-slate-500">{driver.source}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h3 className="text-lg font-semibold">Agent view</h3>
+          <div className="mt-4 space-y-4">
+            {[
+              { name: 'Biomarker agent', score: biomarkerAgent.score, summary: biomarkerAgent.summary, subtitle: 'Whole blood + PBMC + plasma + saliva-derived features' },
+              { name: 'Context agent', score: contextAgent.score, summary: contextAgent.summary, subtitle: 'Symptoms + trends + sleep + stress + exposure' },
+              { name: 'Exposure agent', score: exposureAgent.score, summary: exposureAgent.summary, subtitle: 'Exposure history + baseline deviation + serial trend' },
+              { name: 'Syndrome agent', score: syndromeAgent.score, summary: syndromeAgent.summary, subtitle: 'Pattern classification across infectious scenarios' },
+              { name: 'Operations agent', score: operationsAgent.score, summary: operationsAgent.summary, subtitle: 'Comms, CMO availability, med kit, isolation constraints' },
+            ].map((agent) => (
+              <div key={agent.name} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">{agent.name}</div>
+                    <div className="mt-1 text-xs text-slate-500">{agent.subtitle}</div>
+                  </div>
+                  <div className="rounded-full bg-slate-900 px-3 py-1 text-sm font-semibold text-white">{agent.score}</div>
+                </div>
+                <p className="mt-3 text-sm text-slate-700">{agent.summary}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6 xl:col-span-1">
+        <div className={card}>
+          <h3 className="text-lg font-semibold">ConOps scenario library</h3>
+          <div className="mt-4 space-y-3">
+            {analysis.conopsScenarios.map((scenario, index) => (
+              <div key={`${scenario.title}-${index}`} className={`rounded-2xl px-4 py-3 ${scenario.active ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-700'}`}>
+                <div className="text-sm font-semibold">{scenario.title}</div>
+                <div className={`mt-1 text-sm ${scenario.active ? 'text-slate-200' : 'text-slate-600'}`}>{scenario.detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h3 className="text-lg font-semibold">Modular architecture</h3>
+          <div className="mt-4 space-y-3 text-sm text-slate-700">
+            {analysis.modularBlocks.map((item, index) => <div key={`module-${index}`} className="rounded-2xl bg-slate-50 px-4 py-3">{item}</div>)}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h3 className="text-lg font-semibold">ExMC-style medical operations flow</h3>
+          <div className="mt-4 space-y-3">
+            {analysis.conopsFlow.map((step, index) => (
+              <div key={`${step.step}-${index}`} className="rounded-2xl bg-slate-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-slate-900">{step.step}</div>
+                  <div className={`rounded-full px-2 py-1 text-xs font-semibold ${step.status === 'action' ? 'bg-red-100 text-red-700' : step.status === 'watch' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>{step.status}</div>
+                </div>
+                <p className="mt-2 text-sm text-slate-700">{step.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  const EventView = () => (
+    <>
+      <div className="space-y-6 xl:col-span-2">
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Event workup console</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Probable pattern</div>
+              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.syndrome}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Mission priority</div>
+              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.missionPriority}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Agent reasoning traces</h2>
+          <div className="space-y-4">
+            {analysis.agentHandoffs.map((handoff, index) => (
+              <div key={`${handoff.agent}-trace-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">{handoff.agent}</div>
+                    <div className="mt-1 text-xs text-slate-500">Confidence {handoff.confidence}</div>
+                  </div>
+                  <button type="button" onClick={() => toggleAgent(handoff.agent)} className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-medium text-white">
+                    {expandedAgents[handoff.agent] ? 'Hide trace' : 'Show trace'}
+                  </button>
+                </div>
+                <div className="mt-3 text-sm text-slate-700">{handoff.assessment}</div>
+                {expandedAgents[handoff.agent] && (
+                  <div className="mt-4 space-y-3">
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reasoning trace</div>
+                      <ul className="mt-2 space-y-2 text-sm text-slate-700">
+                        {handoff.reasoningTrace?.map((step, stepIndex) => <li key={`${handoff.agent}-step-${stepIndex}`} className="rounded-xl bg-slate-50 px-3 py-2">{step}</li>)}
+                      </ul>
+                    </div>
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Key signals</div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {handoff.keySignals.map((signal, signalIndex) => <span key={`${handoff.agent}-signal-${signalIndex}`} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">{signal}</span>)}
+                      </div>
+                    </div>
+                    <pre className="whitespace-pre-wrap rounded-2xl bg-white p-3 text-xs leading-6 text-slate-700 ring-1 ring-slate-200">{JSON.stringify(handoff, null, 2)}</pre>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6 xl:col-span-2">
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Dynamic medical operations flow</h2>
+          <div className="space-y-3">
+            {analysis.conopsFlow.map((step, index) => (
+              <div key={`${step.step}-event-${index}`} className="rounded-2xl bg-slate-50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-slate-900">{step.step}</div>
+                  <div className={`rounded-full px-2 py-1 text-xs font-semibold ${step.status === 'action' ? 'bg-red-100 text-red-700' : step.status === 'watch' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'}`}>{step.status}</div>
+                </div>
+                <p className="mt-2 text-sm text-slate-700">{step.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Scenario branch guidance</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {analysis.conopsScenarios.map((scenario, index) => (
+              <div key={`${scenario.title}-branch-${index}`} className={`rounded-2xl p-4 ${scenario.active ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-700'}`}>
+                <div className="text-sm font-semibold">{scenario.title}</div>
+                <div className={`mt-2 text-sm ${scenario.active ? 'text-slate-200' : 'text-slate-600'}`}>{scenario.detail}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Final recommendation</h2>
+          <pre className="whitespace-pre-wrap rounded-2xl bg-slate-50 p-4 text-xs leading-6 text-slate-700">{JSON.stringify(analysis.finalRecommendationObject, null, 2)}</pre>
+        </div>
+      </div>
+    </>
+  );
+
+  const CommunicationView = () => (
+    <>
+      <div className="space-y-6 xl:col-span-2">
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Communication and downlink</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Ground support posture</div>
+              <div className="mt-2 text-sm text-slate-700">{state.commDelayMinutes > 0 ? `Delayed support expected (~${state.commDelayMinutes} min).` : 'Near-real-time consultation available.'}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Operational autonomy need</div>
+              <div className="mt-2 text-sm text-slate-700">{operationsAgent.summary}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Orchestrator handoff</h2>
+          <pre className="whitespace-pre-wrap rounded-2xl bg-slate-50 p-4 text-xs leading-6 text-slate-700">{JSON.stringify(analysis.orchestratorHandoff, null, 2)}</pre>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Downlink summary</h2>
+          <div className="flex justify-end">
+            <button type="button" onClick={handleCopySummary} className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-medium text-white">
+              {copyFeedback === 'copied' ? 'Copied' : 'Copy summary'}
+            </button>
+          </div>
+          {copyFeedback === 'copied' && <div className="mt-2 text-right text-xs text-green-700">Summary copied to clipboard.</div>}
+          {copyFeedback === 'error' && <div className="mt-2 text-right text-xs text-red-700">Copy failed. Clipboard permission may be blocked.</div>}
+          {copyFeedback === 'unsupported' && <div className="mt-2 text-right text-xs text-red-700">Clipboard API is unavailable in this context.</div>}
+          <pre className="mt-4 whitespace-pre-wrap rounded-2xl bg-slate-900 p-4 text-xs leading-6 text-slate-100">{analysis.downlink}</pre>
+        </div>
+      </div>
+
+      <div className="space-y-6 xl:col-span-2">
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">JIT training and execution support</h2>
+          <div className="space-y-3">
+            {analysis.jitTraining.map((item, index) => <div key={`comm-jit-${index}`} className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700">{item}</div>)}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Modular architecture map</h2>
+          <div className="space-y-3 text-sm text-slate-700">
+            {analysis.modularBlocks.map((item, index) => <div key={`comm-module-${index}`} className="rounded-2xl bg-slate-50 px-4 py-3">{item}</div>)}
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Patient history</h2>
+          <div className="space-y-3 text-sm text-slate-700">
+            {analysis.patientHistory.map((item, index) => (
+              <div key={`comm-history-${index}`} className="rounded-2xl bg-slate-50 px-4 py-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{item.label}</div>
+                <div className="mt-1">{item.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6 text-slate-900">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <div className={card}>
+          <div className="flex flex-wrap gap-2">
+            {SELF_TESTS.map((test) => (
+              <div key={test.name} className={`rounded-full px-3 py-1 text-xs font-semibold ${test.pass ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {test.name}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className={card}>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'surveillance', label: 'Surveillance' },
+              { id: 'event', label: 'Event Management' },
+              { id: 'communication', label: 'Communication' },
+            ].map((tab) => (
+              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`rounded-2xl px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className={card}>
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Inspiration4 Infection-Risk CDSS</h1>
+              <p className="mt-2 max-w-4xl text-sm text-slate-600">A mission-usable prototype modeled on ExMC CDSS ideas: multimodal data fusion, context-aware triage, reduced cognitive load, just-in-time support, and a clear detect → characterize → triage → recommend → execute → communicate flow for Earth-independent medical operations. The current fusion weights and thresholds are internally retuned on a synthetic Inspiration4-style benchmark.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(PRESETS).map(([key, preset]) => (
+                <button key={key} type="button" onClick={() => loadPreset(key)} className={`rounded-2xl px-4 py-2 text-sm font-medium ${state.label === preset.label ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 xl:grid-cols-4">
+          {activeTab === 'surveillance' && <SurveillanceView />}
+          {activeTab === 'event' && <EventView />}
+          {activeTab === 'communication' && <CommunicationView />}
+        </div>
+      </div>
+    </div>
+  );
+}
