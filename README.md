@@ -2,6 +2,12 @@
 
 This repo includes a standalone Python-generated viewer for the NASA SANS risk DAG.
 
+[![Open Viewer](https://img.shields.io/badge/Open-SANS_Viewer-0f766e?style=for-the-badge)](https://alirezahayatimedtech.github.io/CDSS_Prototype/)
+
+Open in browser:
+
+`https://alirezahayatimedtech.github.io/CDSS_Prototype/`
+
 Local use:
 
 ```powershell
