@@ -1,4 +1,4 @@
-name: Deploy SANS Viewer
+name: Deploy Appendix C DAG Viewer
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/deploy-pages.yml"
-      - "sans_risk_graph.py"
+      - "DAG/**"
       - "README.md"
   workflow_dispatch:
 
@@ -26,21 +26,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Generate site
-        run: |
-          mkdir -p site
-          python sans_risk_graph.py --output site/sans_risk_graph.svg --html-output site/index.html --report site/sans_risk_graph_report.txt
-          touch site/.nojekyll
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: DAG
 
   deploy:
     needs: build

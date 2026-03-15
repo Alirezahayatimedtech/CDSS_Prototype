@@ -1,17 +1,22 @@
 # CDSS Prototype
 
-This repo includes a standalone Python-generated viewer for the NASA SANS risk DAG.
+This repo includes an integrated Appendix C DAG viewer for all 29 NASA Human System Risk models.
 
-[![Open Viewer](https://img.shields.io/badge/Open-SANS_Viewer-0f766e?style=for-the-badge)](https://alirezahayatimedtech.github.io/CDSS_Prototype/)
+[![Open Viewer](https://img.shields.io/badge/Open-Appendix_C_DAG_Viewer-0f766e?style=for-the-badge)](https://alirezahayatimedtech.github.io/CDSS_Prototype/)
 
 Open in browser:
 
 `https://alirezahayatimedtech.github.io/CDSS_Prototype/`
 
+Repo folder:
+
+`DAG/`
+
 Local use:
 
 ```powershell
-python sans_risk_graph.py --open
+python DAG\generate_dag_catalog.py
+python -m http.server 8000 -d DAG
 ```
 
 GitHub Pages:

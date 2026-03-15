@@ -1,0 +1,209 @@
+Appendix C DAG catalog validation report
+=======================================
+Source PDF: HSRB/TP_Directed Acyclic Graphs_ A Tool for Understanding the nature of the NASA Human System Risks_NASA-TP-20220015709.pdf
+Total graphs: 29
+
+Acoustics Risk
+  Nodes: 37
+  Edges: 51
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Behavioral Risk Narrative
+  Nodes: 39
+  Edges: 63
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Bone Fracture Risk
+  Nodes: 46
+  Edges: 73
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Cardiovascular Risk
+  Nodes: 43
+  Edges: 82
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+CO2 Risk
+  Nodes: 39
+  Edges: 66
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Crew Egress Risk
+  Nodes: 44
+  Edges: 87
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+DCS Risk
+  Nodes: 34
+  Edges: 65
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Dust Risk
+  Nodes: 40
+  Edges: 68
+  Components: 1
+  Missing refs: 0
+  Cycle detected: yes
+  Warnings:
+    - Cycle detected: Atmospheric Dust Level -> Detect Atmospheric Dust -> Dust Removal -> Atmospheric Dust Level
+
+Dynamic Loads Risk
+  Nodes: 32
+  Edges: 55
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Electric Shock Risk
+  Nodes: 44
+  Edges: 77
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+EVA Risk
+  Nodes: 45
+  Edges: 82
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Food and Nutrition Risk
+  Nodes: 45
+  Edges: 97
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+HSIA Risk
+  Nodes: 41
+  Edges: 78
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Hypoxia Risk
+  Nodes: 33
+  Edges: 55
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Immune Risk
+  Nodes: 48
+  Edges: 84
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Medical Risk
+  Nodes: 48
+  Edges: 96
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Microhost Risk
+  Nodes: 41
+  Edges: 69
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Muscle and Aerobic Risks
+  Nodes: 38
+  Edges: 66
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Non-Ionizing Radiation Risk
+  Nodes: 24
+  Edges: 33
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Pharm Risk
+  Nodes: 60
+  Edges: 100
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Carcinogenesis Risk
+  Nodes: 37
+  Edges: 58
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Renal Stone Risk
+  Nodes: 51
+  Edges: 75
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+SANS Risk
+  Nodes: 50
+  Edges: 90
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Sensorimotor Risk
+  Nodes: 42
+  Edges: 86
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Sleep Risk
+  Nodes: 42
+  Edges: 78
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Team Risk
+  Nodes: 37
+  Edges: 77
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Tox Risk
+  Nodes: 44
+  Edges: 85
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+Urinary Retention Risk
+  Nodes: 39
+  Edges: 52
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no
+
+VTE Concern
+  Nodes: 44
+  Edges: 60
+  Components: 1
+  Missing refs: 0
+  Cycle detected: no

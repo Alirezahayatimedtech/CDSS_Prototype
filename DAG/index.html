@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CDSS Appendix C DAG Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div>
+          <div class="eyebrow">NASA Human System Risks</div>
+          <h1>Appendix C DAG viewer</h1>
+          <p>
+            Browse all 29 Appendix C risk models from NASA-TP-20220015709. Choose a risk,
+            inspect nodes, and review graph validation warnings directly in the browser.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <a class="hero-link" href="https://github.com/Alirezahayatimedtech/CDSS_Prototype">Repo</a>
+          <a class="hero-link" href="./appendix_c_validation_report.txt">Validation report</a>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="panel catalog-panel">
+          <div class="panel-header">
+            <h2>Risks</h2>
+            <span id="graphCountPill" class="pill">0 graphs</span>
+          </div>
+          <label class="search-block">
+            <span>Find a risk</span>
+            <input id="riskSearch" type="search" placeholder="SANS, EVA, CO2..." />
+          </label>
+          <div id="riskList" class="risk-list"></div>
+        </aside>
+
+        <section class="panel viewer-panel">
+          <div class="panel-header">
+            <div>
+              <h2 id="graphTitle">Loading...</h2>
+              <p id="graphSubtitle">Preparing Appendix C graph catalog.</p>
+            </div>
+            <div class="panel-tools">
+              <label class="inline-field">
+                <span>Node search</span>
+                <input id="nodeSearch" type="search" placeholder="optic, mission, crew..." />
+              </label>
+              <button id="clearNodeSelection" type="button">Clear node</button>
+            </div>
+          </div>
+
+          <div class="graph-wrap">
+            <div id="graphCanvas" class="graph-canvas"></div>
+          </div>
+        </section>
+
+        <aside class="panel info-panel">
+          <div class="panel-header">
+            <h2>Inspector</h2>
+          </div>
+          <div class="info-content">
+            <div class="stat-grid">
+              <div class="stat-card">
+                <span class="stat-label">Nodes</span>
+                <strong id="nodeCount">0</strong>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Edges</span>
+                <strong id="edgeCount">0</strong>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Components</span>
+                <strong id="componentCount">0</strong>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Warnings</span>
+                <strong id="warningCount">0</strong>
+              </div>
+            </div>
+
+            <section class="card">
+              <h3 id="selectedNodeTitle">Node selection</h3>
+              <p id="selectedNodeKind" class="muted">Click a node to inspect its incoming and outgoing edges.</p>
+            </section>
+
+            <section class="card split-card">
+              <div>
+                <h3>Incoming</h3>
+                <ul id="incomingList" class="simple-list"><li>None</li></ul>
+              </div>
+              <div>
+                <h3>Outgoing</h3>
+                <ul id="outgoingList" class="simple-list"><li>None</li></ul>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3>Validation warnings</h3>
+              <ul id="warningList" class="simple-list"><li>None</li></ul>
+            </section>
+
+            <section class="card split-card">
+              <div>
+                <h3>Roots</h3>
+                <ul id="rootList" class="simple-list"><li>None</li></ul>
+              </div>
+              <div>
+                <h3>Sinks</h3>
+                <ul id="sinkList" class="simple-list"><li>None</li></ul>
+              </div>
+            </section>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
