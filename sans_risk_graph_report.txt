@@ -1,0 +1,24 @@
+SANS Risk DAG validation report
+================================
+Source PDF: C:\Users\AlphaH\Desktop\Papers\awg\CDSS\HSRB\TP_Directed Acyclic Graphs_ A Tool for Understanding the nature of the NASA Human System Risks_NASA-TP-20220015709.pdf
+Validated against the Appendix C 'SANS Risk' DAGitty export in NASA-TP-20220015709. The node positions below come from the extracted SANS Appendix C block shown on PDF pages 200-201 in local text extraction.
+
+Nodes: 50
+Edges: 90
+Missing node references: 0
+Duplicate edges: 0
+Self loops: 0
+Cycle detected: no
+Weakly connected components: 1
+
+Roots:
+Altered Gravity, Astronaut Selection, CO2 (Risk), Cardiovascular (Risk), Distance from Earth, Food and Nutrition (Risk), HSIA (Risk), MRI, Pharm (Risk), Sleep (Risk), Surveillance
+
+Sinks:
+Detect Long Term Health Outcomes, Flight Recertification, Loss of Mission
+
+Key path checks:
+- Altered Gravity -> Loss of Mission: yes
+- Altered Gravity -> Flight Recertification: yes
+- Distance from Earth -> Loss of Mission: yes
+- HSIA (Risk) -> Detect Long Term Health Outcomes: yes

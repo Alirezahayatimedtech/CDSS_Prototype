@@ -1,0 +1,343 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1368" height="1764" viewBox="0 0 1368 1764">
+<defs>
+<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#f8fafc" />
+<stop offset="100%" stop-color="#e2e8f0" />
+</linearGradient>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+</marker>
+<marker id="arrow-main" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#ea580c" />
+</marker>
+</defs>
+<rect x="0" y="0" width="1368" height="1764" fill="url(#bg)" />
+<text x="36" y="42" font-size="26" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#0f172a">Risk of Spaceflight Associated Neuro-ocular Syndrome (SANS Risk)</text>
+<text x="36" y="68" font-size="13" font-family="Segoe UI, Arial, sans-serif" fill="#475569">Appendix C DAGitty export translated into standalone Python and rendered from the source coordinates.</text>
+<line x1="193.4" y1="433.9" x2="159.0" y2="434.6" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Altered Gravity -> Fluid Shifts</title></line>
+<line x1="219.7" y1="120.3" x2="477.1" y2="120.3" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Astronaut Selection -> Individual Factors</title></line>
+<line x1="338.4" y1="234.8" x2="637.1" y2="183.1" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Brain Structural Changes -> Detect Brain Structural Changes</title></line>
+<line x1="327.4" y1="272.9" x2="864.2" y2="509.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Brain Structural Changes -> Long Term Health Outcomes</title></line>
+<line x1="278.5" y1="666.0" x2="342.8" y2="554.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>CO2 (Risk) -> Intracranial Pressure Changes</title></line>
+<line x1="496.6" y1="737.2" x2="525.9" y2="631.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Cardiovascular (Risk) -> Optic Disc Edema</title></line>
+<line x1="650.3" y1="719.3" x2="702.5" y2="1055.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Chorioretinal Folds -> Detect Ocular Structural Changes</title></line>
+<line x1="723.2" y1="719.3" x2="863.1" y2="751.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Chorioretinal Folds -> Flight Recertification</title></line>
+<line x1="657.0" y1="684.3" x2="758.0" y2="495.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Chorioretinal Folds -> Visual Field Defect</title></line>
+<line x1="941.3" y1="1103.3" x2="944.0" y2="1229.3" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Crew Capability -> Task Performance</title></line>
+<line x1="440.8" y1="1448.2" x2="196.4" y2="1056.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Crew Health and Performance System -> Medical Prevention Capability</title></line>
+<line x1="534.0" y1="1473.7" x2="709.6" y2="1472.5" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Crew Health and Performance System -> Medical Treatment Capability</title></line>
+<line x1="458.4" y1="1448.2" x2="463.8" y2="1347.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Crew Health and Performance System -> Physiologic Monitoring Capability</title></line>
+<line x1="754.9" y1="195.8" x2="867.0" y2="267.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Detect Brain Structural Changes -> Detect Long Term Health Outcomes</title></line>
+<line x1="471.1" y1="362.9" x2="837.8" y2="304.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Detect Intracranial Pressure Changes -> Detect Long Term Health Outcomes</title></line>
+<line x1="426.8" y1="401.8" x2="914.3" y2="751.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Detect Intracranial Pressure Changes -> Flight Recertification</title></line>
+<line x1="399.9" y1="401.8" x2="773.8" y2="1446.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Detect Intracranial Pressure Changes -> Medical Treatment Capability</title></line>
+<line x1="713.2" y1="1055.4" x2="901.2" y2="319.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Detect Ocular Structural Changes -> Detect Long Term Health Outcomes</title></line>
+<line x1="725.9" y1="1055.4" x2="925.7" y2="786.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Detect Ocular Structural Changes -> Flight Recertification</title></line>
+<line x1="762.3" y1="1240.6" x2="780.7" y2="1446.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Detect Visual Changes -> Medical Treatment Capability</title></line>
+<line x1="218.1" y1="1475.7" x2="201.9" y2="1476.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Distance from Earth -> Vehicle Design</title></line>
+<line x1="222.7" y1="415.9" x2="261.3" y2="272.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Fluid Shifts -> Brain Structural Changes</title></line>
+<line x1="243.6" y1="450.9" x2="319.7" y2="502.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Fluid Shifts -> Intracranial Pressure Changes</title></line>
+<line x1="224.3" y1="450.9" x2="353.1" y2="808.7" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Fluid Shifts -> Vascular Congestion</title></line>
+<line x1="215.0" y1="1223.0" x2="268.8" y2="1101.1" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Food and Nutrition (Risk) -> Supplements</title></line>
+<line x1="554.1" y1="864.5" x2="637.6" y2="719.3" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Globe Flattening -> Chorioretinal Folds</title></line>
+<line x1="558.3" y1="899.5" x2="685.3" y2="1055.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Globe Flattening -> Detect Ocular Structural Changes</title></line>
+<line x1="614.0" y1="873.5" x2="630.6" y2="871.5" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Globe Flattening -> Refractive Error Shift</title></line>
+<line x1="346.6" y1="1367.3" x2="430.2" y2="1448.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>HSIA (Risk) -> Crew Health and Performance System</title></line>
+<line x1="319.6" y1="1367.3" x2="273.8" y2="1456.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>HSIA (Risk) -> Vehicle Design</title></line>
+<line x1="514.6" y1="137.8" x2="327.0" y2="220.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Brain Structural Changes</title></line>
+<line x1="556.9" y1="137.8" x2="644.8" y2="684.3" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Chorioretinal Folds</title></line>
+<line x1="553.8" y1="137.8" x2="544.2" y2="864.5" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Globe Flattening</title></line>
+<line x1="545.7" y1="137.8" x2="370.3" y2="502.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Intracranial Pressure Changes</title></line>
+<line x1="553.2" y1="137.8" x2="531.6" y2="596.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Optic Disc Edema</title></line>
+<line x1="558.0" y1="137.8" x2="717.7" y2="843.1" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Refractive Error Shift</title></line>
+<line x1="560.1" y1="137.8" x2="655.9" y2="414.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Retinal Nerve Fiber Layer Atrophy</title></line>
+<line x1="549.2" y1="137.8" x2="364.2" y2="808.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Vascular Congestion</title></line>
+<line x1="564.5" y1="137.8" x2="756.9" y2="460.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Individual Factors -> Visual Field Defect</title></line>
+<line x1="878.5" y1="1017.6" x2="924.9" y2="1068.3" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Individual Readiness -> Crew Capability</title></line>
+<line x1="349.6" y1="502.9" x2="276.6" y2="272.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Intracranial Pressure Changes -> Brain Structural Changes</title></line>
+<line x1="363.4" y1="502.9" x2="385.0" y2="401.8" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Intracranial Pressure Changes -> Detect Intracranial Pressure Changes</title></line>
+<line x1="371.5" y1="554.9" x2="534.8" y2="864.5" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Intracranial Pressure Changes -> Globe Flattening</title></line>
+<line x1="445.3" y1="529.8" x2="853.2" y2="534.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Intracranial Pressure Changes -> Long Term Health Outcomes</title></line>
+<line x1="410.7" y1="554.9" x2="495.2" y2="596.4" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Intracranial Pressure Changes -> Optic Disc Edema</title></line>
+<line x1="479.2" y1="1008.4" x2="394.2" y2="401.8" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Intracranial Pressure Monitoring -> Detect Intracranial Pressure Changes</title></line>
+<line x1="921.6" y1="509.2" x2="909.5" y2="319.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Long Term Health Outcomes -> Detect Long Term Health Outcomes</title></line>
+<line x1="931.0" y1="1508.1" x2="955.0" y2="1627.4" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Loss of Mission Objectives -> Loss of Mission</title></line>
+<line x1="172.6" y1="357.7" x2="352.4" y2="808.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Lower Body Negative Pressure -> Vascular Congestion</title></line>
+<line x1="179.5" y1="1004.0" x2="162.9" y2="357.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Medical Prevention Capability -> Lower Body Negative Pressure</title></line>
+<line x1="184.1" y1="1004.0" x2="206.8" y2="852.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Medical Prevention Capability -> Thigh Cuffs</title></line>
+<line x1="195.7" y1="1004.0" x2="251.6" y2="910.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Medical Prevention Capability -> Medications</title></line>
+<line x1="227.0" y1="1056.0" x2="245.1" y2="1066.1" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Medical Prevention Capability -> Supplements</title></line>
+<line x1="789.9" y1="1446.0" x2="833.9" y2="1279.1" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Medical Treatment Capability -> Lenses</title></line>
+<line x1="554.0" y1="631.4" x2="624.4" y2="684.3" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Optic Disc Edema -> Chorioretinal Folds</title></line>
+<line x1="537.3" y1="631.4" x2="696.8" y2="1055.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Optic Disc Edema -> Detect Ocular Structural Changes</title></line>
+<line x1="544.3" y1="596.4" x2="644.9" y2="466.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Optic Disc Edema -> Retinal Nerve Fiber Layer Atrophy</title></line>
+<line x1="561.1" y1="596.4" x2="737.0" y2="495.0" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Optic Disc Edema -> Visual Field Defect</title></line>
+<line x1="600.6" y1="1156.2" x2="669.7" y2="1107.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Optical Coherence Tomography -> Detect Ocular Structural Changes</title></line>
+<line x1="132.6" y1="1096.3" x2="161.5" y2="1056.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Pharm (Risk) -> Medical Prevention Capability</title></line>
+<line x1="466.8" y1="1295.7" x2="481.3" y2="1060.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Physiologic Monitoring Capability -> Intracranial Pressure Monitoring</title></line>
+<line x1="483.6" y1="1295.7" x2="545.5" y2="1208.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Physiologic Monitoring Capability -> Optical Coherence Tomography</title></line>
+<line x1="513.3" y1="1347.7" x2="604.0" y2="1396.8" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Physiologic Monitoring Capability -> Visual Acuity Test</title></line>
+<line x1="519.6" y1="1295.7" x2="588.0" y2="1263.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Physiologic Monitoring Capability -> Visual Fields Test</title></line>
+<line x1="460.6" y1="1295.7" x2="431.5" y2="1131.3" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Physiologic Monitoring Capability -> Fundoscopy</title></line>
+<line x1="446.2" y1="1295.7" x2="383.9" y2="1210.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Physiologic Monitoring Capability -> Ultrasound</title></line>
+<line x1="723.5" y1="878.1" x2="758.8" y2="1205.6" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Refractive Error Shift -> Detect Visual Changes</title></line>
+<line x1="739.3" y1="878.1" x2="844.8" y2="982.6" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Refractive Error Shift -> Individual Readiness</title></line>
+<line x1="736.0" y1="466.0" x2="719.5" y2="460.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Retinal Nerve Fiber Layer Atrophy -> Visual Field Defect</title></line>
+<line x1="252.8" y1="575.0" x2="298.6" y2="554.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Sleep (Risk) -> Intracranial Pressure Changes</title></line>
+<line x1="943.0" y1="1264.3" x2="927.8" y2="1456.1" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Task Performance -> Loss of Mission Objectives</title></line>
+<line x1="268.5" y1="831.4" x2="278.9" y2="830.8" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Thigh Cuffs -> Vascular Congestion</title></line>
+<line x1="417.3" y1="843.7" x2="486.1" y2="864.5" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Vascular Congestion -> Globe Flattening</title></line>
+<line x1="359.3" y1="808.7" x2="358.0" y2="554.9" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Vascular Congestion -> Intracranial Pressure Changes</title></line>
+<line x1="373.5" y1="808.7" x2="516.6" y2="631.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Vascular Congestion -> Optic Disc Edema</title></line>
+<line x1="327.9" y1="1474.2" x2="380.1" y2="1474.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Vehicle Design -> Crew Health and Performance System</title></line>
+<line x1="647.7" y1="1396.8" x2="749.3" y2="1240.6" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Visual Acuity Test -> Detect Visual Changes</title></line>
+<line x1="767.2" y1="495.0" x2="760.9" y2="1205.6" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Visual Field Defect -> Detect Visual Changes</title></line>
+<line x1="770.5" y1="495.0" x2="859.3" y2="982.6" stroke="#ea580c" stroke-width="2.6" marker-end="url(#arrow-main)" opacity="0.95"><title>Visual Field Defect -> Individual Readiness</title></line>
+<line x1="814.7" y1="495.0" x2="853.2" y2="509.3" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Visual Field Defect -> Long Term Health Outcomes</title></line>
+<line x1="701.6" y1="1232.8" x2="673.2" y2="1237.5" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Visual Fields Test -> Detect Visual Changes</title></line>
+<line x1="487.4" y1="1106.9" x2="629.5" y2="1090.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Fundoscopy -> Detect Ocular Structural Changes</title></line>
+<line x1="840.1" y1="1244.1" x2="860.9" y2="1017.6" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Lenses -> Individual Readiness</title></line>
+<line x1="529.0" y1="373.1" x2="690.4" y2="195.8" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>MRI -> Detect Brain Structural Changes</title></line>
+<line x1="518.0" y1="408.1" x2="699.3" y2="1055.4" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>MRI -> Detect Ocular Structural Changes</title></line>
+<line x1="266.7" y1="875.2" x2="351.0" y2="554.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Medications -> Intracranial Pressure Changes</title></line>
+<line x1="287.7" y1="875.2" x2="333.8" y2="843.7" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Medications -> Vascular Congestion</title></line>
+<line x1="279.1" y1="1066.1" x2="354.0" y2="554.9" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Supplements -> Intracranial Pressure Changes</title></line>
+<line x1="840.1" y1="137.5" x2="896.5" y2="267.2" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Surveillance -> Detect Long Term Health Outcomes</title></line>
+<line x1="423.6" y1="1175.7" x2="629.5" y2="1107.0" stroke="#64748b" stroke-width="1.35" marker-end="url(#arrow)" opacity="0.95"><title>Ultrasound -> Detect Ocular Structural Changes</title></line>
+<rect x="60.4" y="417.8" width="133.0" height="35.0" rx="14" ry="14" fill="#cffafe" stroke="#0f766e" stroke-width="1.7"><title>Altered Gravity</title></rect>
+<text x="126.9" y="435.3" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="126.9" dy="0">Altered Gravity</tspan>
+</text>
+<rect x="58.7" y="102.8" width="161.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Astronaut Selection</title></rect>
+<text x="139.2" y="120.3" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="139.2" dy="0">Astronaut Selection</tspan>
+</text>
+<rect x="198.4" y="220.9" width="140.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Brain Structural Changes</title></rect>
+<text x="268.4" y="238.9" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="268.4" dy="0">Brain Structural</tspan>
+<tspan x="268.4" dy="16">Changes</tspan>
+</text>
+<rect x="209.4" y="666.0" width="118.0" height="35.0" rx="14" ry="14" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.7"><title>CO2 (Risk)</title></rect>
+<text x="268.4" y="683.5" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="268.4" dy="0">CO2 (Risk)</tspan>
+</text>
+<rect x="404.2" y="737.2" width="175.0" height="35.0" rx="14" ry="14" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.7"><title>Cardiovascular (Risk)</title></rect>
+<text x="491.7" y="754.7" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="491.7" dy="0">Cardiovascular (Risk)</tspan>
+</text>
+<rect x="567.1" y="684.3" width="161.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Chorioretinal Folds</title></rect>
+<text x="647.6" y="701.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="647.6" dy="0">Chorioretinal Folds</tspan>
+</text>
+<rect x="874.4" y="1068.3" width="133.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Crew Capability</title></rect>
+<text x="940.9" y="1085.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="940.9" dy="0">Crew Capability</tspan>
+</text>
+<rect x="380.1" y="1448.2" width="154.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Crew Health and Performance System</title></rect>
+<text x="457.1" y="1466.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="457.1" dy="0">Crew Health and</tspan>
+<tspan x="457.1" dy="16">Performance System</tspan>
+</text>
+<rect x="637.1" y="143.8" width="154.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Detect Brain Structural Changes</title></rect>
+<text x="714.1" y="161.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="714.1" dy="0">Detect Brain</tspan>
+<tspan x="714.1" dy="16">Structural Changes</tspan>
+</text>
+<rect x="310.1" y="349.8" width="161.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Detect Intracranial Pressure Changes</title></rect>
+<text x="390.6" y="367.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="390.6" dy="0">Detect Intracranial</tspan>
+<tspan x="390.6" dy="16">Pressure Changes</tspan>
+</text>
+<rect x="837.8" y="267.2" width="140.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Detect Long Term Health Outcomes</title></rect>
+<text x="907.8" y="285.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="907.8" dy="0">Detect Long Term</tspan>
+<tspan x="907.8" dy="16">Health Outcomes</tspan>
+</text>
+<rect x="629.5" y="1055.4" width="154.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Detect Ocular Structural Changes</title></rect>
+<text x="706.5" y="1073.4" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="706.5" dy="0">Detect Ocular</tspan>
+<tspan x="706.5" dy="16">Structural Changes</tspan>
+</text>
+<rect x="673.2" y="1205.6" width="175.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Detect Visual Changes</title></rect>
+<text x="760.7" y="1223.1" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="760.7" dy="0">Detect Visual Changes</tspan>
+</text>
+<rect x="57.1" y="1460.8" width="161.0" height="35.0" rx="14" ry="14" fill="#cffafe" stroke="#0f766e" stroke-width="1.7"><title>Distance from Earth</title></rect>
+<text x="137.6" y="1478.3" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="137.6" dy="0">Distance from Earth</tspan>
+</text>
+<rect x="847.7" y="751.7" width="182.0" height="35.0" rx="14" ry="14" fill="#fef3c7" stroke="#a16207" stroke-width="1.7"><title>Flight Recertification</title></rect>
+<text x="938.7" y="769.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="938.7" dy="0">Flight Recertification</tspan>
+</text>
+<rect x="159.0" y="415.9" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Fluid Shifts</title></rect>
+<text x="218.0" y="433.4" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="218.0" dy="0">Fluid Shifts</tspan>
+</text>
+<rect x="126.5" y="1223.0" width="154.0" height="52.0" rx="14" ry="14" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.7"><title>Food and Nutrition (Risk)</title></rect>
+<text x="203.5" y="1241.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="203.5" dy="0">Food and Nutrition</tspan>
+<tspan x="203.5" dy="16">(Risk)</tspan>
+</text>
+<rect x="474.0" y="864.5" width="140.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Globe Flattening</title></rect>
+<text x="544.0" y="882.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="544.0" dy="0">Globe Flattening</tspan>
+</text>
+<rect x="269.5" y="1332.3" width="118.0" height="35.0" rx="14" ry="14" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.7"><title>HSIA (Risk)</title></rect>
+<text x="328.5" y="1349.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="328.5" dy="0">HSIA (Risk)</tspan>
+</text>
+<rect x="477.1" y="102.8" width="154.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Individual Factors</title></rect>
+<text x="554.1" y="120.3" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="554.1" dy="0">Individual Factors</tspan>
+</text>
+<rect x="778.5" y="982.6" width="168.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Individual Readiness</title></rect>
+<text x="862.5" y="1000.1" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="862.5" dy="0">Individual Readiness</tspan>
+</text>
+<rect x="270.3" y="502.9" width="175.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Intracranial Pressure Changes</title></rect>
+<text x="357.8" y="520.9" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="357.8" dy="0">Intracranial Pressure</tspan>
+<tspan x="357.8" dy="16">Changes</tspan>
+</text>
+<rect x="395.4" y="1008.4" width="175.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Intracranial Pressure Monitoring</title></rect>
+<text x="482.9" y="1026.4" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="482.9" dy="0">Intracranial Pressure</tspan>
+<tspan x="482.9" dy="16">Monitoring</tspan>
+</text>
+<rect x="853.2" y="509.2" width="140.0" height="52.0" rx="14" ry="14" fill="#fef3c7" stroke="#a16207" stroke-width="1.7"><title>Long Term Health Outcomes</title></rect>
+<text x="923.2" y="527.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="923.2" dy="0">Long Term Health</tspan>
+<tspan x="923.2" dy="16">Outcomes</tspan>
+</text>
+<rect x="859.3" y="1456.1" width="133.0" height="52.0" rx="14" ry="14" fill="#fef3c7" stroke="#a16207" stroke-width="1.7"><title>Loss of Mission Objectives</title></rect>
+<text x="925.8" y="1474.1" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="925.8" dy="0">Loss of Mission</tspan>
+<tspan x="925.8" dy="16">Objectives</tspan>
+</text>
+<rect x="892.0" y="1627.4" width="133.0" height="35.0" rx="14" ry="14" fill="#fef3c7" stroke="#a16207" stroke-width="1.7"><title>Loss of Mission</title></rect>
+<text x="958.5" y="1644.9" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="958.5" dy="0">Loss of Mission</tspan>
+</text>
+<rect x="81.7" y="305.7" width="161.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Lower Body Negative Pressure</title></rect>
+<text x="162.2" y="323.7" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="162.2" dy="0">Lower Body Negative</tspan>
+<tspan x="162.2" dy="16">Pressure</tspan>
+</text>
+<rect x="103.2" y="1004.0" width="154.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Medical Prevention Capability</title></rect>
+<text x="180.2" y="1022.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="180.2" dy="0">Medical Prevention</tspan>
+<tspan x="180.2" dy="16">Capability</tspan>
+</text>
+<rect x="709.6" y="1446.0" width="147.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Medical Treatment Capability</title></rect>
+<text x="783.1" y="1464.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="783.1" dy="0">Medical Treatment</tspan>
+<tspan x="783.1" dy="16">Capability</tspan>
+</text>
+<rect x="460.8" y="596.4" width="140.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Optic Disc Edema</title></rect>
+<text x="530.8" y="613.9" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="530.8" dy="0">Optic Disc Edema</tspan>
+</text>
+<rect x="490.3" y="1156.2" width="147.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Optical Coherence Tomography</title></rect>
+<text x="563.8" y="1174.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="563.8" dy="0">Optical Coherence</tspan>
+<tspan x="563.8" dy="16">Tomography</tspan>
+</text>
+<rect x="61.0" y="1096.3" width="118.0" height="35.0" rx="14" ry="14" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.7"><title>Pharm (Risk)</title></rect>
+<text x="120.0" y="1113.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="120.0" dy="0">Pharm (Risk)</tspan>
+</text>
+<rect x="374.2" y="1295.7" width="182.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Physiologic Monitoring Capability</title></rect>
+<text x="465.2" y="1313.7" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="465.2" dy="0">Physiologic Monitoring</tspan>
+<tspan x="465.2" dy="16">Capability</tspan>
+</text>
+<rect x="630.6" y="843.1" width="182.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Refractive Error Shift</title></rect>
+<text x="721.6" y="860.6" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="721.6" dy="0">Refractive Error Shift</tspan>
+</text>
+<rect x="584.5" y="414.0" width="161.0" height="52.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Retinal Nerve Fiber Layer Atrophy</title></rect>
+<text x="665.0" y="432.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="665.0" dy="0">Retinal Nerve Fiber</tspan>
+<tspan x="665.0" dy="16">Layer Atrophy</tspan>
+</text>
+<rect x="153.9" y="575.0" width="118.0" height="35.0" rx="14" ry="14" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.7"><title>Sleep (Risk)</title></rect>
+<text x="212.9" y="592.5" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="212.9" dy="0">Sleep (Risk)</tspan>
+</text>
+<rect x="874.4" y="1229.3" width="140.0" height="35.0" rx="14" ry="14" fill="#fef3c7" stroke="#a16207" stroke-width="1.7"><title>Task Performance</title></rect>
+<text x="944.4" y="1246.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="944.4" dy="0">Task Performance</tspan>
+</text>
+<rect x="150.5" y="817.2" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Thigh Cuffs</title></rect>
+<text x="209.5" y="834.7" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="209.5" dy="0">Thigh Cuffs</tspan>
+</text>
+<rect x="278.9" y="808.7" width="161.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Vascular Congestion</title></rect>
+<text x="359.4" y="826.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="359.4" dy="0">Vascular Congestion</tspan>
+</text>
+<rect x="201.9" y="1456.7" width="126.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Vehicle Design</title></rect>
+<text x="264.9" y="1474.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="264.9" dy="0">Vehicle Design</tspan>
+</text>
+<rect x="559.3" y="1396.8" width="154.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Visual Acuity Test</title></rect>
+<text x="636.3" y="1414.3" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="636.3" dy="0">Visual Acuity Test</tspan>
+</text>
+<rect x="686.8" y="460.0" width="161.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Visual Field Defect</title></rect>
+<text x="767.3" y="477.5" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="767.3" dy="0">Visual Field Defect</tspan>
+</text>
+<rect x="547.6" y="1228.0" width="154.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Visual Fields Test</title></rect>
+<text x="624.6" y="1245.5" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="624.6" dy="0">Visual Fields Test</tspan>
+</text>
+<rect x="369.4" y="1096.3" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Fundoscopy</title></rect>
+<text x="428.4" y="1113.8" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="428.4" dy="0">Fundoscopy</tspan>
+</text>
+<rect x="779.5" y="1244.1" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Lenses</title></rect>
+<text x="838.5" y="1261.6" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="838.5" dy="0">Lenses</tspan>
+</text>
+<rect x="454.1" y="373.1" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>MRI</title></rect>
+<text x="513.1" y="390.6" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="513.1" dy="0">MRI</tspan>
+</text>
+<rect x="203.1" y="875.2" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Medications</title></rect>
+<text x="262.1" y="892.7" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="262.1" dy="0">Medications</tspan>
+</text>
+<rect x="217.6" y="1066.1" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Supplements</title></rect>
+<text x="276.6" y="1083.6" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="276.6" dy="0">Supplements</tspan>
+</text>
+<rect x="773.5" y="102.5" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Surveillance</title></rect>
+<text x="832.5" y="120.0" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="832.5" dy="0">Surveillance</tspan>
+</text>
+<rect x="312.1" y="1175.7" width="118.0" height="35.0" rx="14" ry="14" fill="#f8fafc" stroke="#334155" stroke-width="1.7"><title>Ultrasound</title></rect>
+<text x="371.1" y="1193.2" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">
+<tspan x="371.1" dy="0">Ultrasound</tspan>
+</text>
+<rect x="1084" y="96" width="254" height="282" rx="18" ry="18" fill="#ffffff" stroke="#cbd5e1" />
+<text x="1096" y="120" font-size="18" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#0f172a">Legend</text>
+<rect x="1096" y="136" width="18" height="18" rx="6" ry="6" fill="#cffafe" stroke="#0f766e" />
+<text x="1126" y="149" font-size="13" font-family="Segoe UI, Arial, sans-serif" fill="#334155">Exposure node</text>
+<rect x="1096" y="170" width="18" height="18" rx="6" ry="6" fill="#fee2e2" stroke="#b91c1c" />
+<text x="1126" y="183" font-size="13" font-family="Segoe UI, Arial, sans-serif" fill="#334155">Latent / linked risk</text>
+<rect x="1096" y="204" width="18" height="18" rx="6" ry="6" fill="#fef3c7" stroke="#a16207" />
+<text x="1126" y="217" font-size="13" font-family="Segoe UI, Arial, sans-serif" fill="#334155">Outcome node</text>
+<rect x="1096" y="238" width="18" height="18" rx="6" ry="6" fill="#f8fafc" stroke="#334155" />
+<text x="1126" y="251" font-size="13" font-family="Segoe UI, Arial, sans-serif" fill="#334155">Operational / clinical node</text>
+<text x="1096" y="296" font-size="13" font-family="Segoe UI, Arial, sans-serif" font-weight="700" fill="#0f172a">Source note</text>
+<text x="1096" y="318" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">Validated against the Appendix C</text>
+<text x="1096" y="336" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">&#x27;SANS Risk&#x27; DAGitty export in</text>
+<text x="1096" y="354" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">NASA-TP-20220015709. The node</text>
+<text x="1096" y="372" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">positions below come from the</text>
+<text x="1096" y="390" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">extracted SANS Appendix C block</text>
+<text x="1096" y="408" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">shown on PDF pages 200-201 in</text>
+<text x="1096" y="426" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">local text extraction.</text>
+<text x="1096" y="462" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#475569">Orange edges mark the main mission-consequence path.</text>
+</svg>
