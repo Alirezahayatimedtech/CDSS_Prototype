@@ -5,26 +5,27 @@ const kindStyles = {
   outcome: { fill: "#fef3c7", stroke: "#a16207" },
 };
 
-const riskList = document.getElementById("riskList");
-const graphCanvas = document.getElementById("graphCanvas");
-const graphCountPill = document.getElementById("graphCountPill");
-const graphTitle = document.getElementById("graphTitle");
-const graphSubtitle = document.getElementById("graphSubtitle");
-const riskSearch = document.getElementById("riskSearch");
-const nodeSearch = document.getElementById("nodeSearch");
-const clearNodeSelection = document.getElementById("clearNodeSelection");
+const doc = typeof document !== "undefined" ? document : null;
+const riskList = doc?.getElementById("riskList");
+const graphCanvas = doc?.getElementById("graphCanvas");
+const graphCountPill = doc?.getElementById("graphCountPill");
+const graphTitle = doc?.getElementById("graphTitle");
+const graphSubtitle = doc?.getElementById("graphSubtitle");
+const riskSearch = doc?.getElementById("riskSearch");
+const nodeSearch = doc?.getElementById("nodeSearch");
+const clearNodeSelection = doc?.getElementById("clearNodeSelection");
 
-const nodeCount = document.getElementById("nodeCount");
-const edgeCount = document.getElementById("edgeCount");
-const componentCount = document.getElementById("componentCount");
-const warningCount = document.getElementById("warningCount");
-const selectedNodeTitle = document.getElementById("selectedNodeTitle");
-const selectedNodeKind = document.getElementById("selectedNodeKind");
-const incomingList = document.getElementById("incomingList");
-const outgoingList = document.getElementById("outgoingList");
-const warningList = document.getElementById("warningList");
-const rootList = document.getElementById("rootList");
-const sinkList = document.getElementById("sinkList");
+const nodeCount = doc?.getElementById("nodeCount");
+const edgeCount = doc?.getElementById("edgeCount");
+const componentCount = doc?.getElementById("componentCount");
+const warningCount = doc?.getElementById("warningCount");
+const selectedNodeTitle = doc?.getElementById("selectedNodeTitle");
+const selectedNodeKind = doc?.getElementById("selectedNodeKind");
+const incomingList = doc?.getElementById("incomingList");
+const outgoingList = doc?.getElementById("outgoingList");
+const warningList = doc?.getElementById("warningList");
+const rootList = doc?.getElementById("rootList");
+const sinkList = doc?.getElementById("sinkList");
 
 let catalog = null;
 let currentGraph = null;
@@ -39,7 +40,7 @@ function listMarkup(items) {
   return items.map((item) => `<li>${item}</li>`).join("");
 }
 
-function wrapLabel(label, width = 22) {
+function wrapLabel(label, width = 18) {
   const words = label.split(" ");
   const lines = [];
   let line = "";
@@ -60,12 +61,23 @@ function wrapLabel(label, width = 22) {
   return lines;
 }
 
-function measureNode(label) {
-  const lines = wrapLabel(label);
+function measureNode(label, nodeCount = 0) {
+  const denseGraph = nodeCount >= 45;
+  const veryDenseGraph = nodeCount >= 55;
+  const wrapWidth = veryDenseGraph ? 14 : denseGraph ? 16 : 18;
+  const fontSize = veryDenseGraph ? 11.2 : denseGraph ? 11.8 : 12.5;
+  const lineHeight = veryDenseGraph ? 14 : 15;
+  const minWidth = veryDenseGraph ? 106 : 116;
+  const maxWidth = veryDenseGraph ? 190 : denseGraph ? 208 : 226;
+  const horizontalPadding = veryDenseGraph ? 18 : 20;
+  const verticalPadding = veryDenseGraph ? 14 : 15;
+  const lines = wrapLabel(label, wrapWidth);
   const longest = Math.max(...lines.map((line) => line.length));
   return {
-    width: Math.max(118, Math.min(250, longest * 7 + 28)),
-    height: 18 + lines.length * 17,
+    width: Math.max(minWidth, Math.min(maxWidth, longest * fontSize * 0.62 + horizontalPadding * 2)),
+    height: verticalPadding * 2 + lines.length * lineHeight,
+    fontSize,
+    lineHeight,
     lines,
   };
 }
@@ -86,6 +98,172 @@ function rectEdgePoint(centerX, centerY, width, height, towardX, towardY) {
 
 function graphNodeMap(graph) {
   return new Map(graph.nodes.map((node) => [node.id, node]));
+}
+
+function buildAdjacency(graph) {
+  const incoming = new Map(graph.nodes.map((node) => [node.id, []]));
+  const outgoing = new Map(graph.nodes.map((node) => [node.id, []]));
+
+  for (const edge of graph.edges) {
+    incoming.get(edge.target)?.push(edge.source);
+    outgoing.get(edge.source)?.push(edge.target);
+  }
+
+  return { incoming, outgoing };
+}
+
+function buildTopologicalOrder(graph, incoming, outgoing) {
+  const indegree = new Map(graph.nodes.map((node) => [node.id, incoming.get(node.id)?.length ?? 0]));
+  const queue = graph.nodes
+    .map((node) => node.id)
+    .filter((nodeId) => (indegree.get(nodeId) ?? 0) === 0)
+    .sort((left, right) => left.localeCompare(right));
+  const order = [];
+
+  while (queue.length) {
+    const nodeId = queue.shift();
+    order.push(nodeId);
+    for (const target of outgoing.get(nodeId) ?? []) {
+      indegree.set(target, (indegree.get(target) ?? 0) - 1);
+      if ((indegree.get(target) ?? 0) === 0) {
+        queue.push(target);
+        queue.sort((left, right) => left.localeCompare(right));
+      }
+    }
+  }
+
+  const hadCycle = order.length !== graph.nodes.length;
+  if (hadCycle) {
+    const remainder = graph.nodes
+      .map((node) => node.id)
+      .filter((nodeId) => !order.includes(nodeId))
+      .sort((left, right) => left.localeCompare(right));
+    order.push(...remainder);
+  }
+
+  return { order, hadCycle };
+}
+
+function sortLayerByBarycenter(nodeIds, neighborLookup, referenceOrder, fallbackOrder) {
+  return [...nodeIds].sort((left, right) => {
+    const leftNeighbors = (neighborLookup.get(left) ?? [])
+      .map((neighbor) => referenceOrder.get(neighbor))
+      .filter((value) => Number.isFinite(value));
+    const rightNeighbors = (neighborLookup.get(right) ?? [])
+      .map((neighbor) => referenceOrder.get(neighbor))
+      .filter((value) => Number.isFinite(value));
+
+    const leftScore = leftNeighbors.length
+      ? leftNeighbors.reduce((sum, value) => sum + value, 0) / leftNeighbors.length
+      : Number.POSITIVE_INFINITY;
+    const rightScore = rightNeighbors.length
+      ? rightNeighbors.reduce((sum, value) => sum + value, 0) / rightNeighbors.length
+      : Number.POSITIVE_INFINITY;
+
+    if (Number.isFinite(leftScore) && Number.isFinite(rightScore) && leftScore !== rightScore) {
+      return leftScore - rightScore;
+    }
+    if (Number.isFinite(leftScore) !== Number.isFinite(rightScore)) {
+      return Number.isFinite(leftScore) ? -1 : 1;
+    }
+    return (fallbackOrder.get(left) ?? 0) - (fallbackOrder.get(right) ?? 0);
+  });
+}
+
+function computeGraphLayout(graph) {
+  const measured = new Map(graph.nodes.map((node) => [node.id, measureNode(node.id, graph.nodes.length)]));
+  const { incoming, outgoing } = buildAdjacency(graph);
+  const { order } = buildTopologicalOrder(graph, incoming, outgoing);
+  const fallbackOrder = new Map(order.map((nodeId, index) => [nodeId, index]));
+  const layers = new Map();
+  const nodeLayer = new Map();
+
+  for (const nodeId of order) {
+    const parentLayers = (incoming.get(nodeId) ?? [])
+      .map((parentId) => nodeLayer.get(parentId))
+      .filter((value) => Number.isFinite(value));
+    const layer = parentLayers.length ? Math.max(...parentLayers) + 1 : 0;
+    nodeLayer.set(nodeId, layer);
+    if (!layers.has(layer)) {
+      layers.set(layer, []);
+    }
+    layers.get(layer).push(nodeId);
+  }
+
+  const orderedLayers = Array.from(layers.keys())
+    .sort((left, right) => left - right)
+    .map((layer) => [...layers.get(layer)]);
+
+  let layerOrder = new Map();
+  for (const layer of orderedLayers) {
+    layer.sort((left, right) => (fallbackOrder.get(left) ?? 0) - (fallbackOrder.get(right) ?? 0));
+    layer.forEach((nodeId, index) => layerOrder.set(nodeId, index));
+  }
+
+  for (let pass = 0; pass < 4; pass += 1) {
+    for (let index = 1; index < orderedLayers.length; index += 1) {
+      orderedLayers[index] = sortLayerByBarycenter(
+        orderedLayers[index],
+        incoming,
+        layerOrder,
+        fallbackOrder
+      );
+      orderedLayers[index].forEach((nodeId, position) => layerOrder.set(nodeId, position));
+    }
+
+    for (let index = orderedLayers.length - 2; index >= 0; index -= 1) {
+      orderedLayers[index] = sortLayerByBarycenter(
+        orderedLayers[index],
+        outgoing,
+        layerOrder,
+        fallbackOrder
+      );
+      orderedLayers[index].forEach((nodeId, position) => layerOrder.set(nodeId, position));
+    }
+  }
+
+  const horizontalGap = graph.nodes.length >= 45 ? 76 : 88;
+  const verticalGap = graph.nodes.length >= 45 ? 24 : 28;
+  const paddingX = 72;
+  const paddingY = 72;
+  const layerWidths = orderedLayers.map((layer) =>
+    Math.max(...layer.map((nodeId) => measured.get(nodeId).width))
+  );
+  const layerHeights = orderedLayers.map((layer) =>
+    layer.reduce((sum, nodeId) => sum + measured.get(nodeId).height, 0) + verticalGap * Math.max(0, layer.length - 1)
+  );
+  const maxLayerHeight = Math.max(...layerHeights, 0);
+  const coords = new Map();
+
+  let cursorX = paddingX;
+  orderedLayers.forEach((layer, index) => {
+    const layerWidth = layerWidths[index];
+    const layerHeight = layerHeights[index];
+    const centerX = cursorX + layerWidth / 2;
+    let cursorY = paddingY + (maxLayerHeight - layerHeight) / 2;
+
+    layer.forEach((nodeId) => {
+      const box = measured.get(nodeId);
+      coords.set(nodeId, {
+        cx: centerX,
+        cy: cursorY + box.height / 2,
+        ...box,
+      });
+      cursorY += box.height + verticalGap;
+    });
+
+    cursorX += layerWidth + horizontalGap;
+  });
+
+  return {
+    coords,
+    width: Math.round(
+      paddingX * 2 +
+        layerWidths.reduce((sum, value) => sum + value, 0) +
+        horizontalGap * Math.max(0, orderedLayers.length - 1)
+    ),
+    height: Math.round(paddingY * 2 + maxLayerHeight),
+  };
 }
 
 function renderRiskList() {
@@ -125,25 +303,7 @@ function renderGraph() {
   sinkList.innerHTML = listMarkup(currentGraph.validation.sinks);
 
   const nodeMap = graphNodeMap(currentGraph);
-  const measured = new Map(currentGraph.nodes.map((node) => [node.id, measureNode(node.id)]));
-  const minX = Math.min(...currentGraph.nodes.map((node) => node.x));
-  const maxX = Math.max(...currentGraph.nodes.map((node) => node.x));
-  const minY = Math.min(...currentGraph.nodes.map((node) => node.y));
-  const maxY = Math.max(...currentGraph.nodes.map((node) => node.y));
-  const scale = 310;
-  const padding = 120;
-  const width = Math.round((maxX - minX) * scale + padding * 2);
-  const height = Math.round((maxY - minY) * scale + padding * 2);
-
-  const coords = new Map();
-  for (const node of currentGraph.nodes) {
-    const box = measured.get(node.id);
-    coords.set(node.id, {
-      cx: (node.x - minX) * scale + padding,
-      cy: (maxY - node.y) * scale + padding,
-      ...box,
-    });
-  }
+  const { coords, width, height } = computeGraphLayout(currentGraph);
 
   const edgesMarkup = currentGraph.edges
     .map((edge) => {
@@ -165,11 +325,11 @@ function renderGraph() {
       const box = coords.get(node.id);
       const x = box.cx - box.width / 2;
       const y = box.cy - box.height / 2;
-      const textY = box.cy - ((box.lines.length - 1) * 8);
+      const textY = box.cy - ((box.lines.length - 1) * box.lineHeight) / 2;
       const tspanMarkup = box.lines
         .map(
           (line, index) =>
-            `<tspan x="${box.cx.toFixed(1)}" dy="${index === 0 ? 0 : 16}">${line}</tspan>`
+            `<tspan x="${box.cx.toFixed(1)}" dy="${index === 0 ? 0 : box.lineHeight}">${line}</tspan>`
         )
         .join("");
 
@@ -183,13 +343,13 @@ function renderGraph() {
           1
         )}" y="${textY.toFixed(
           1
-        )}" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0f172a">${tspanMarkup}</text>
+        )}" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="${box.fontSize}" font-weight="600" fill="#0f172a">${tspanMarkup}</text>
         <title>${node.id}</title>
       </g>`;
     })
     .join("");
 
-  graphCanvas.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  graphCanvas.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="#f8fafc" />
@@ -295,32 +455,36 @@ function start(catalogData) {
   updateInspector();
 }
 
-riskSearch.addEventListener("input", () => {
-  currentRiskSearch = riskSearch.value.trim().toLowerCase();
-  renderRiskList();
-});
-
-nodeSearch.addEventListener("input", () => {
-  currentNodeSearch = nodeSearch.value.trim().toLowerCase();
-  applyFilters(graphNodeMap(currentGraph));
-});
-
-clearNodeSelection.addEventListener("click", () => {
-  selectedNodeId = null;
-  applyFilters(graphNodeMap(currentGraph));
-  updateInspector();
-});
-
-fetch("./data/dags.json")
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error(`Failed to load DAG catalog: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(start)
-  .catch((error) => {
-    graphTitle.textContent = "Catalog load failed";
-    graphSubtitle.textContent = error.message;
-    graphCanvas.innerHTML = `<div class="card" style="margin:20px;">${error.message}</div>`;
+if (doc) {
+  riskSearch.addEventListener("input", () => {
+    currentRiskSearch = riskSearch.value.trim().toLowerCase();
+    renderRiskList();
   });
+
+  nodeSearch.addEventListener("input", () => {
+    currentNodeSearch = nodeSearch.value.trim().toLowerCase();
+    applyFilters(graphNodeMap(currentGraph));
+  });
+
+  clearNodeSelection.addEventListener("click", () => {
+    selectedNodeId = null;
+    applyFilters(graphNodeMap(currentGraph));
+    updateInspector();
+  });
+
+  fetch("./data/dags.json")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load DAG catalog: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(start)
+    .catch((error) => {
+      graphTitle.textContent = "Catalog load failed";
+      graphSubtitle.textContent = error.message;
+      graphCanvas.innerHTML = `<div class="card" style="margin:20px;">${error.message}</div>`;
+    });
+}
+
+export { computeGraphLayout, measureNode, wrapLabel };
