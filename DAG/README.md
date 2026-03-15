@@ -10,5 +10,6 @@ Contents:
 - `data/dags.json`: generated graph dataset for all 29 Appendix C models
 - `appendix_c_validation_report.txt`: validation summary across the catalog
 - `generate_dag_catalog.py`: local generator that extracts graph data from the source PDF
+- `archive/`: earlier standalone SANS-only artifacts kept out of the repo root
 
 Local regeneration requires the PDF in `HSRB/` and a `pdftotext` binary available locally.
