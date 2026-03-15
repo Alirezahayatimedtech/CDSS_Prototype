@@ -9,11 +9,7 @@ import webbrowser
 from collections import defaultdict, deque
 from pathlib import Path
 
-PDF_SOURCE = (
-    Path(__file__).resolve().parent
-    / "HSRB"
-    / "TP_Directed Acyclic Graphs_ A Tool for Understanding the nature of the NASA Human System Risks_NASA-TP-20220015709.pdf"
-)
+PDF_SOURCE = Path("HSRB") / "TP_Directed Acyclic Graphs_ A Tool for Understanding the nature of the NASA Human System Risks_NASA-TP-20220015709.pdf"
 
 SOURCE_NOTE = (
     "Validated against the Appendix C 'SANS Risk' DAGitty export in "

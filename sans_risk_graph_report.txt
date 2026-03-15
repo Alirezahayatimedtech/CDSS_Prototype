@@ -1,6 +1,6 @@
 SANS Risk DAG validation report
 ================================
-Source PDF: C:\Users\AlphaH\Desktop\Papers\awg\CDSS\HSRB\TP_Directed Acyclic Graphs_ A Tool for Understanding the nature of the NASA Human System Risks_NASA-TP-20220015709.pdf
+Source PDF: HSRB\TP_Directed Acyclic Graphs_ A Tool for Understanding the nature of the NASA Human System Risks_NASA-TP-20220015709.pdf
 Validated against the Appendix C 'SANS Risk' DAGitty export in NASA-TP-20220015709. The node positions below come from the extracted SANS Appendix C block shown on PDF pages 200-201 in local text extraction.
 
 Nodes: 50
