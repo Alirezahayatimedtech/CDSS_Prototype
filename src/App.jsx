@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CDSSInfectionRiskPrototype from '../cdss_infection_risk_prototype.jsx';
 import SansRiskGraph from './SansRiskGraph.jsx';
 
@@ -15,8 +15,38 @@ const workspaces = [
   },
 ];
 
+const workspaceIds = new Set(workspaces.map((item) => item.id));
+
+function getWorkspaceFromLocation() {
+  if (typeof window === 'undefined') return 'sans';
+
+  const params = new URLSearchParams(window.location.search);
+  const requestedWorkspace = params.get('workspace');
+
+  if (requestedWorkspace && workspaceIds.has(requestedWorkspace)) {
+    return requestedWorkspace;
+  }
+
+  return 'sans';
+}
+
 export default function App() {
-  const [workspace, setWorkspace] = useState('sans');
+  const [workspace, setWorkspace] = useState(getWorkspaceFromLocation);
+
+  useEffect(() => {
+    const syncWorkspaceFromLocation = () => {
+      setWorkspace(getWorkspaceFromLocation());
+    };
+
+    window.addEventListener('popstate', syncWorkspaceFromLocation);
+    return () => window.removeEventListener('popstate', syncWorkspaceFromLocation);
+  }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('workspace', workspace);
+    window.history.replaceState({}, '', url);
+  }, [workspace]);
 
   return (
     <div className="min-h-screen p-4 text-slate-900 md:p-6">
