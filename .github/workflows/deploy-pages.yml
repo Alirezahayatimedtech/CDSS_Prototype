@@ -1,4 +1,4 @@
-name: Deploy Appendix C DAG Viewer
+name: Deploy CDSS Prototype
 
 on:
   push:
@@ -6,8 +6,13 @@ on:
       - main
     paths:
       - ".github/workflows/deploy-pages.yml"
-      - "DAG/**"
       - "README.md"
+      - "index.html"
+      - "vite.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "cdss_infection_risk_prototype.jsx"
+      - "src/**"
   workflow_dispatch:
 
 permissions:
@@ -26,10 +31,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: DAG
+          path: dist
 
   deploy:
     needs: build

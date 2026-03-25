@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import CDSSInfectionRiskPrototype from '../cdss_infection_risk_prototype.jsx';
+import App from './App.jsx';
+import './styles.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <CDSSInfectionRiskPrototype />
+    <App />
   </React.StrictMode>
 );
