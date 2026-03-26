@@ -7,11 +7,13 @@ on:
     paths:
       - ".github/workflows/deploy-pages.yml"
       - "README.md"
+      - "DAG/**"
       - "index.html"
       - "vite.config.js"
       - "package.json"
       - "package-lock.json"
       - "cdss_infection_risk_prototype.jsx"
+      - "scripts/**"
       - "src/**"
   workflow_dispatch:
 

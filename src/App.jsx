@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import CDSSInfectionRiskPrototype from '../cdss_infection_risk_prototype.jsx';
-import SansRiskGraph from './SansRiskGraph.jsx';
 
 const workspaces = [
   {
     id: 'sans',
-    label: 'SANS DAG',
-    description: 'Appendix C graph explorer with speculative-edge controls.',
+    label: 'DAG Catalog',
+    description: 'Restored Appendix C catalog viewer with all 29 NASA Human System Risk scenarios.',
   },
   {
     id: 'infection',
@@ -28,6 +27,39 @@ function getWorkspaceFromLocation() {
   }
 
   return 'sans';
+}
+
+function LegacyDagCatalog() {
+  const dagCatalogUrl = `${import.meta.env.BASE_URL}dag-catalog/index.html`;
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-lg shadow-slate-200/70">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-sm font-semibold text-slate-900">Appendix C DAG catalog</div>
+            <div className="mt-1 text-sm text-slate-600">
+              Restored legacy viewer with the full multi-scenario catalog from the earlier GitHub version.
+            </div>
+          </div>
+          <a
+            href={dagCatalogUrl}
+            className="inline-flex rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+          >
+            Open full-screen DAG catalog
+          </a>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
+        <iframe
+          title="Appendix C DAG catalog"
+          src={dagCatalogUrl}
+          className="h-[1400px] w-full border-0"
+        />
+      </div>
+    </div>
+  );
 }
 
 export default function App() {
@@ -89,7 +121,7 @@ export default function App() {
           </div>
         </div>
 
-        {workspace === 'sans' ? <SansRiskGraph /> : <CDSSInfectionRiskPrototype />}
+        {workspace === 'sans' ? <LegacyDagCatalog /> : <CDSSInfectionRiskPrototype />}
       </div>
     </div>
   );
