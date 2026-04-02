@@ -213,6 +213,24 @@ body {
   background: #0f172a;
 }
 
+.zoom-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-status {
+  min-width: 62px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 44px;
+  text-align: center;
+}
+
 .graph-wrap {
   flex: 1;
   overflow: auto;
@@ -226,7 +244,7 @@ body {
 
 .graph-canvas svg {
   display: block;
-  max-width: 100%;
+  max-width: none;
   height: auto;
 }
 
@@ -277,6 +295,45 @@ body {
   font-size: 0.95rem;
 }
 
+.legend-list {
+  display: grid;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.legend-swatch {
+  flex: 0 0 auto;
+}
+
+.legend-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--legend-color);
+  border: 2px solid var(--legend-border);
+}
+
+.legend-rect {
+  width: 22px;
+  height: 14px;
+  border-radius: 6px;
+  background: var(--legend-color);
+  border: 2px solid var(--legend-border);
+}
+
+.legend-line {
+  width: 22px;
+  height: 0;
+  border-top: 3px solid var(--legend-color);
+}
+
 .split-card {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -294,41 +351,52 @@ body {
   color: var(--muted);
 }
 
-.node-rect,
+.node-shape,
 .node-label {
   cursor: pointer;
   transition: opacity 160ms ease;
 }
 
-.node-rect {
+.node-shape {
   transition: opacity 160ms ease, stroke-width 160ms ease, filter 160ms ease;
 }
 
 .node-label {
-  transition: opacity 160ms ease;
+  transition: opacity 160ms ease, fill 160ms ease;
 }
 
-.node-rect.selected {
+.node-shape.selected {
   stroke: #0f172a !important;
   stroke-width: 3.1;
   filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.18));
 }
 
-.node-rect.neighbor {
+.node-shape.neighbor {
   stroke-width: 2.7;
 }
 
-.node-rect.hidden,
+.paper-label {
+  paint-order: stroke fill;
+  stroke: rgba(255, 255, 255, 0.96);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.paper-label.selected {
+  fill: #0f172a;
+}
+
+.node-shape.hidden,
 .node-label.hidden,
 .edge-line.hidden,
 .risk-button.hidden {
   display: none;
 }
 
-.node-rect.muted,
+.node-shape.muted,
 .node-label.muted,
 .edge-line.muted {
-  opacity: 0.14;
+  opacity: 0.16;
 }
 
 .edge-line {

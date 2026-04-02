@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/copy-dag-catalog.mjs",
-    "preview": "vite preview"
+    "build": "vite build && node scripts/validate-appendix-c-evidence.mjs && node scripts/copy-dag-catalog.mjs",
+    "preview": "vite preview",
+    "validate:appendix-c-evidence": "node scripts/validate-appendix-c-evidence.mjs"
   },
   "dependencies": {
     "@xyflow/react": "^12.10.1",

@@ -1,3 +1,5 @@
+const APPENDIX_C_SOURCE = 'NASA-TP-20220015709 Appendix C DAGitty export';
+
 const groupDefinitions = {
   exposure: {
     label: 'Exposure',
@@ -375,7 +377,7 @@ export const primaryNarrative = [
 ];
 
 export const exportNote =
-  'Appendix C is used as the machine-readable base DAG. Dotted or speculative links from the figure are kept as a separate overlay because they are not fully represented in the DAGitty export.';
+  'All SANS nodes and directed edges in this workspace are matched to the Appendix C DAGitty export. Edges tagged as speculative remain Appendix C-backed; the tag is only a viewer overlay used to emphasize hypothesized relationships highlighted in the paper figure and narrative.';
 
 const speculativeEdgePairs = [
   ['CO2 (Risk)', 'Intracranial Pressure Changes'],
@@ -420,6 +422,7 @@ export const sansNodes = groupOrder.flatMap((group) =>
     label: id,
     group,
     detail: nodeDescriptions[id] || groupDefinitions[group].description,
+    evidenceSource: APPENDIX_C_SOURCE,
   }))
 );
 
@@ -428,12 +431,13 @@ export const sansEdges = rawEdges.map(([source, target]) => ({
   source,
   target,
   speculative: speculativeEdgeIds.has(edgeId(source, target)),
+  evidenceSource: APPENDIX_C_SOURCE,
 }));
 
 export function buildGraphExport() {
   return {
     graph: 'NASA SANS Risk DAG',
-    source: 'NASA-TP-20220015709 Appendix C DAGitty export',
+    source: APPENDIX_C_SOURCE,
     note: exportNote,
     nodes: sansNodes,
     edges: sansEdges,

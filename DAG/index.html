@@ -19,6 +19,7 @@
         </div>
         <div class="hero-actions">
           <a class="hero-link" href="https://github.com/Alirezahayatimedtech/CDSS_Prototype">Repo</a>
+          <a class="hero-link" href="./appendix_c_evidence_report.md">Evidence report</a>
           <a class="hero-link" href="./appendix_c_validation_report.txt">Validation report</a>
         </div>
       </header>
@@ -43,6 +44,12 @@
               <p id="graphSubtitle">Preparing Appendix C graph catalog.</p>
             </div>
             <div class="panel-tools">
+              <div class="zoom-tools">
+                <span id="zoomStatus" class="zoom-status">100%</span>
+                <button id="zoomOut" type="button">-</button>
+                <button id="zoomReset" type="button">Reset</button>
+                <button id="zoomIn" type="button">+</button>
+              </div>
               <label class="inline-field">
                 <span>Layout</span>
                 <select id="layoutMode">
@@ -86,6 +93,11 @@
                 <strong id="warningCount">0</strong>
               </div>
             </div>
+
+            <section class="card">
+              <h3>Legend</h3>
+              <div id="legendList" class="legend-list"></div>
+            </section>
 
             <section class="card">
               <h3 id="selectedNodeTitle">Node selection</h3>

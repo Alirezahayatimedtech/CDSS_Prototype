@@ -7,6 +7,7 @@ const targetDir = join(rootDir, 'dist', 'dag-catalog');
 
 const entriesToCopy = [
   'app.js',
+  'appendix_c_evidence_report.md',
   'appendix_c_validation_report.txt',
   'data',
   'index.html',
