@@ -14,6 +14,7 @@ const graphSubtitle = doc?.getElementById("graphSubtitle");
 const riskSearch = doc?.getElementById("riskSearch");
 const nodeSearch = doc?.getElementById("nodeSearch");
 const clearNodeSelection = doc?.getElementById("clearNodeSelection");
+const layoutMode = doc?.getElementById("layoutMode");
 
 const nodeCount = doc?.getElementById("nodeCount");
 const edgeCount = doc?.getElementById("edgeCount");
@@ -32,6 +33,7 @@ let currentGraph = null;
 let selectedNodeId = null;
 let currentNodeSearch = "";
 let currentRiskSearch = "";
+let currentLayoutMode = "paper";
 
 function listMarkup(items) {
   if (!items.length) {
@@ -170,7 +172,7 @@ function sortLayerByBarycenter(nodeIds, neighborLookup, referenceOrder, fallback
   });
 }
 
-function computeGraphLayout(graph) {
+function computeStructuredGraphLayout(graph) {
   const measured = new Map(graph.nodes.map((node) => [node.id, measureNode(node.id, graph.nodes.length)]));
   const { incoming, outgoing } = buildAdjacency(graph);
   const { order } = buildTopologicalOrder(graph, incoming, outgoing);
@@ -264,6 +266,121 @@ function computeGraphLayout(graph) {
     ),
     height: Math.round(paddingY * 2 + maxLayerHeight),
   };
+}
+
+function spansFromCoords(coords) {
+  const values = [...coords.values()];
+  const xValues = values.map((item) => item.cx);
+  const yValues = values.map((item) => item.cy);
+  return {
+    x: Math.max(...xValues) - Math.min(...xValues),
+    y: Math.max(...yValues) - Math.min(...yValues),
+  };
+}
+
+function countOverlaps(coords) {
+  const values = [...coords.values()];
+  let overlaps = 0;
+
+  for (let index = 0; index < values.length; index += 1) {
+    for (let offset = index + 1; offset < values.length; offset += 1) {
+      const left = values[index];
+      const right = values[offset];
+      const xGap = Math.abs(left.cx - right.cx);
+      const yGap = Math.abs(left.cy - right.cy);
+      const xLimit = (left.width + right.width) / 2 + 10;
+      const yLimit = (left.height + right.height) / 2 + 10;
+
+      if (xGap < xLimit && yGap < yLimit) {
+        overlaps += 1;
+      }
+    }
+  }
+
+  return overlaps;
+}
+
+function computePaperGraphLayout(graph) {
+  const structuredLayout = computeStructuredGraphLayout(graph);
+  const measured = new Map(graph.nodes.map((node) => [node.id, measureNode(node.id, graph.nodes.length)]));
+  const positionedNodes = graph.nodes.filter(
+    (node) => Number.isFinite(node.x) && Number.isFinite(node.y)
+  );
+
+  if (positionedNodes.length !== graph.nodes.length) {
+    return structuredLayout;
+  }
+
+  const xValues = positionedNodes.map((node) => node.x);
+  const yValues = positionedNodes.map((node) => node.y);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const xRange = maxX - minX;
+  const yRange = maxY - minY;
+  const usePaperX = xRange >= 0.15;
+  const usePaperY = yRange >= 0.15;
+
+  if (!usePaperX && !usePaperY) {
+    return structuredLayout;
+  }
+
+  const structuredSpans = spansFromCoords(structuredLayout.coords);
+  const targetXSpan = Math.max(structuredSpans.x, 620);
+  const targetYSpan = Math.max(structuredSpans.y, 620);
+  const scaleX = usePaperX ? targetXSpan / xRange : 1;
+  const scaleY = usePaperY ? targetYSpan / yRange : 1;
+  const paddingX = 96;
+  const paddingY = 96;
+  const coords = new Map();
+
+  graph.nodes.forEach((node) => {
+    const box = measured.get(node.id);
+    const structuredBox = structuredLayout.coords.get(node.id);
+    const cx = usePaperX ? (node.x - minX) * scaleX : structuredBox.cx;
+    const cy = usePaperY ? (maxY - node.y) * scaleY : structuredBox.cy;
+
+    coords.set(node.id, {
+      ...box,
+      cx,
+      cy,
+    });
+  });
+
+  const values = [...coords.values()];
+  const minLeft = Math.min(...values.map((item) => item.cx - item.width / 2));
+  const minTop = Math.min(...values.map((item) => item.cy - item.height / 2));
+  const shiftX = paddingX - minLeft;
+  const shiftY = paddingY - minTop;
+
+  coords.forEach((item) => {
+    item.cx += shiftX;
+    item.cy += shiftY;
+  });
+
+  const normalizedValues = [...coords.values()];
+  const width = Math.round(
+    Math.max(...normalizedValues.map((item) => item.cx + item.width / 2)) + paddingX
+  );
+  const height = Math.round(
+    Math.max(...normalizedValues.map((item) => item.cy + item.height / 2)) + paddingY
+  );
+  const overlapCount = countOverlaps(coords);
+  const overlapLimit = Math.max(4, Math.round(graph.nodes.length * 0.22));
+
+  if (overlapCount > overlapLimit) {
+    return structuredLayout;
+  }
+
+  return { coords, width, height };
+}
+
+function computeGraphLayout(graph) {
+  if (currentLayoutMode === "structured") {
+    return computeStructuredGraphLayout(graph);
+  }
+  return computePaperGraphLayout(graph);
 }
 
 function renderRiskList() {
@@ -456,6 +573,14 @@ function start(catalogData) {
 }
 
 if (doc) {
+  layoutMode.value = currentLayoutMode;
+
+  layoutMode.addEventListener("change", () => {
+    currentLayoutMode = layoutMode.value;
+    renderGraph();
+    updateInspector();
+  });
+
   riskSearch.addEventListener("input", () => {
     currentRiskSearch = riskSearch.value.trim().toLowerCase();
     renderRiskList();
@@ -487,4 +612,4 @@ if (doc) {
     });
 }
 
-export { computeGraphLayout, measureNode, wrapLabel };
+export { computeGraphLayout, computeStructuredGraphLayout, computePaperGraphLayout, measureNode, wrapLabel };
