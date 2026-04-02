@@ -237,6 +237,13 @@ body {
   padding: 16px;
 }
 
+.graph-legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 16px 0;
+}
+
 .graph-canvas {
   min-height: 900px;
   width: 100%;
@@ -298,6 +305,18 @@ body {
 .legend-list {
   display: grid;
   gap: 10px;
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.96);
+  font-size: 0.82rem;
+  color: var(--text);
 }
 
 .legend-item {

@@ -18,6 +18,7 @@ const graphCanvas = doc?.getElementById("graphCanvas");
 const graphCountPill = doc?.getElementById("graphCountPill");
 const graphTitle = doc?.getElementById("graphTitle");
 const graphSubtitle = doc?.getElementById("graphSubtitle");
+const graphLegendBar = doc?.getElementById("graphLegendBar");
 const riskSearch = doc?.getElementById("riskSearch");
 const nodeSearch = doc?.getElementById("nodeSearch");
 const clearNodeSelection = doc?.getElementById("clearNodeSelection");
@@ -558,26 +559,90 @@ function updateZoomStatus() {
   }
 }
 
+function countNodeKinds(graph) {
+  return graph.nodes.reduce(
+    (counts, node) => {
+      counts[node.kind] = (counts[node.kind] ?? 0) + 1;
+      return counts;
+    },
+    { default: 0, exposure: 0, latent: 0, outcome: 0 }
+  );
+}
+
 function renderLegend() {
   if (!legendList) {
     return;
   }
 
+  const counts = currentGraph ? countNodeKinds(currentGraph) : { default: 0, exposure: 0, latent: 0, outcome: 0 };
   const legendItems =
     currentLayoutMode === "structured"
       ? [
-          { label: "Operational / clinical", color: structuredKindStyles.default.fill, border: structuredKindStyles.default.stroke, shape: "rect" },
-          { label: "Exposure", color: structuredKindStyles.exposure.fill, border: structuredKindStyles.exposure.stroke, shape: "rect" },
-          { label: "Latent / linked risk", color: structuredKindStyles.latent.fill, border: structuredKindStyles.latent.stroke, shape: "rect" },
-          { label: "Outcome", color: structuredKindStyles.outcome.fill, border: structuredKindStyles.outcome.stroke, shape: "rect" },
-          { label: "Directed edge", color: "#64748b", border: "#64748b", shape: "line" },
+          {
+            label: `Operational / clinical rectangles (${counts.default})`,
+            shortLabel: `${counts.default} operational`,
+            color: structuredKindStyles.default.fill,
+            border: structuredKindStyles.default.stroke,
+            shape: "rect",
+          },
+          {
+            label: `Exposure rectangles (${counts.exposure})`,
+            shortLabel: `${counts.exposure} exposure`,
+            color: structuredKindStyles.exposure.fill,
+            border: structuredKindStyles.exposure.stroke,
+            shape: "rect",
+          },
+          {
+            label: `Latent / linked risk rectangles (${counts.latent})`,
+            shortLabel: `${counts.latent} latent`,
+            color: structuredKindStyles.latent.fill,
+            border: structuredKindStyles.latent.stroke,
+            shape: "rect",
+          },
+          {
+            label: `Outcome rectangles (${counts.outcome})`,
+            shortLabel: `${counts.outcome} outcome`,
+            color: structuredKindStyles.outcome.fill,
+            border: structuredKindStyles.outcome.stroke,
+            shape: "rect",
+          },
+          {
+            label: "Gray directed edges",
+            shortLabel: "gray edges",
+            color: "#64748b",
+            border: "#64748b",
+            shape: "line",
+          },
         ]
       : [
-          { label: "Operational / clinical", color: paperKindStyles.default.fill, border: paperKindStyles.default.stroke, shape: "circle" },
-          { label: "Exposure", color: paperKindStyles.exposure.fill, border: paperKindStyles.exposure.stroke, shape: "circle" },
-          { label: "Latent / linked risk", color: paperKindStyles.latent.fill, border: paperKindStyles.latent.stroke, shape: "circle" },
-          { label: "Outcome", color: paperKindStyles.outcome.fill, border: paperKindStyles.outcome.stroke, shape: "circle" },
-          { label: "Directed edge", color: "#8ccf69", border: "#8ccf69", shape: "line" },
+          {
+            label: `Blue circles: operational / clinical + outcomes (${counts.default + counts.outcome})`,
+            shortLabel: `${counts.default + counts.outcome} blue circles`,
+            color: paperKindStyles.default.fill,
+            border: paperKindStyles.default.stroke,
+            shape: "circle",
+          },
+          {
+            label: `Yellow-green circles: exposures (${counts.exposure})`,
+            shortLabel: `${counts.exposure} exposure circles`,
+            color: paperKindStyles.exposure.fill,
+            border: paperKindStyles.exposure.stroke,
+            shape: "circle",
+          },
+          {
+            label: `Gray circles: latent / linked risks (${counts.latent})`,
+            shortLabel: `${counts.latent} latent circles`,
+            color: paperKindStyles.latent.fill,
+            border: paperKindStyles.latent.stroke,
+            shape: "circle",
+          },
+          {
+            label: "Green directed edges",
+            shortLabel: "green edges",
+            color: "#8ccf69",
+            border: "#8ccf69",
+            shape: "line",
+          },
         ];
 
   legendList.innerHTML = legendItems
@@ -589,6 +654,19 @@ function renderLegend() {
       return `<div class="legend-item"><span class="legend-swatch legend-${item.shape}" style="--legend-color:${item.color}; --legend-border:${item.border};"></span><span>${item.label}</span></div>`;
     })
     .join("");
+
+  if (graphLegendBar) {
+    graphLegendBar.innerHTML = legendItems
+      .map((item) => {
+        const swatch =
+          item.shape === "line"
+            ? `<span class="legend-swatch legend-line" style="--legend-color:${item.color};"></span>`
+            : `<span class="legend-swatch legend-${item.shape}" style="--legend-color:${item.color}; --legend-border:${item.border};"></span>`;
+
+        return `<div class="legend-chip">${swatch}<span>${item.shortLabel}</span></div>`;
+      })
+      .join("");
+  }
 }
 
 function renderRiskList() {
