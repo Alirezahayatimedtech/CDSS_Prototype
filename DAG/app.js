@@ -19,6 +19,7 @@ const graphCountPill = doc?.getElementById("graphCountPill");
 const graphTitle = doc?.getElementById("graphTitle");
 const graphSubtitle = doc?.getElementById("graphSubtitle");
 const graphLegendBar = doc?.getElementById("graphLegendBar");
+const graphLegendNote = doc?.getElementById("graphLegendNote");
 const riskSearch = doc?.getElementById("riskSearch");
 const nodeSearch = doc?.getElementById("nodeSearch");
 const clearNodeSelection = doc?.getElementById("clearNodeSelection");
@@ -40,6 +41,7 @@ const warningList = doc?.getElementById("warningList");
 const rootList = doc?.getElementById("rootList");
 const sinkList = doc?.getElementById("sinkList");
 const legendList = doc?.getElementById("legendList");
+const legendSummary = doc?.getElementById("legendSummary");
 
 let catalog = null;
 let currentGraph = null;
@@ -575,6 +577,10 @@ function renderLegend() {
   }
 
   const counts = currentGraph ? countNodeKinds(currentGraph) : { default: 0, exposure: 0, latent: 0, outcome: 0 };
+  const legendDescription =
+    currentLayoutMode === "structured"
+      ? "Structured layout uses rectangles to separate operational, exposure, latent, and outcome nodes with gray directed edges."
+      : "Paper layout uses colored circles and green directed edges, following the Appendix C coordinate-based figure style.";
   const legendItems =
     currentLayoutMode === "structured"
       ? [
@@ -666,6 +672,14 @@ function renderLegend() {
         return `<div class="legend-chip">${swatch}<span>${item.shortLabel}</span></div>`;
       })
       .join("");
+  }
+
+  if (legendSummary) {
+    legendSummary.textContent = legendDescription;
+  }
+
+  if (graphLegendNote) {
+    graphLegendNote.textContent = legendDescription;
   }
 }
 

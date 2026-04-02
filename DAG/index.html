@@ -65,7 +65,13 @@
             </div>
           </div>
 
-          <div id="graphLegendBar" class="graph-legend-bar"></div>
+          <section class="graph-legend-card" aria-label="Graph legend">
+            <div class="graph-legend-header">
+              <h3>Quick legend</h3>
+              <p id="graphLegendNote" class="muted">Color and edge meaning for the current layout.</p>
+            </div>
+            <div id="graphLegendBar" class="graph-legend-bar"></div>
+          </section>
 
           <div class="graph-wrap">
             <div id="graphCanvas" class="graph-canvas"></div>
@@ -97,7 +103,8 @@
             </div>
 
             <section class="card">
-              <h3>Legend</h3>
+              <h3>Full legend</h3>
+              <p id="legendSummary" class="muted legend-summary">Detailed color and edge meanings for the current layout.</p>
               <div id="legendList" class="legend-list"></div>
             </section>
 

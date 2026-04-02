@@ -237,11 +237,37 @@ body {
   padding: 16px;
 }
 
+.graph-legend-card {
+  margin: 0 16px;
+  padding: 14px 16px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: rgba(248, 250, 252, 0.95);
+}
+
+.graph-legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.graph-legend-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.graph-legend-header p {
+  margin: 0;
+  max-width: 64ch;
+  font-size: 0.84rem;
+}
+
 .graph-legend-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 14px 16px 0;
+  padding-top: 12px;
 }
 
 .graph-canvas {
@@ -300,6 +326,11 @@ body {
 .card h3 {
   margin: 0 0 8px;
   font-size: 0.95rem;
+}
+
+.legend-summary {
+  margin: 0 0 12px;
+  line-height: 1.5;
 }
 
 .legend-list {
