@@ -105,6 +105,7 @@ const PRESETS = {
   },
   i4_respiratory: {
     label: 'I4 Respiratory',
+    targetScenarioFamily: 'respiratory_syndrome',
     crewId: 'I4-CMO-04',
     missionDay: 3,
     mode: 'Medical Event',
@@ -139,6 +140,7 @@ const PRESETS = {
   },
   i4_reactivation: {
     label: 'I4 Reactivation',
+    targetScenarioFamily: 'reactivation_watch',
     crewId: 'I4-CMO-05',
     missionDay: 3,
     mode: 'Medical Event',
@@ -173,6 +175,7 @@ const PRESETS = {
   },
   i4_delay: {
     label: 'I4 Delayed Downlink',
+    targetScenarioFamily: 'delayed_support_event',
     crewId: 'I4-CMO-06',
     missionDay: 3,
     mode: 'Medical Event',
@@ -207,6 +210,7 @@ const PRESETS = {
   },
   i4_constrained: {
     label: 'I4 Constrained',
+    targetScenarioFamily: 'constrained_support_event',
     crewId: 'I4-CMO-07',
     missionDay: 3,
     mode: 'Medical Event',
@@ -263,42 +267,166 @@ const SCENARIO_LIBRARY = {
   reactivation_watch: {
     id: 'reactivation_watch',
     name: 'Viral reactivation / immune dysregulation watch',
-    goal: 'Catch early reactivation-like patterns before full clinical decompensation.',
+    goal: 'Detect watch-list cases early enough to repeat sampling, increase monitoring, and escalate before overt deterioration.',
     triggerSummary: 'Mild/mixed symptoms with immune baseline shift, reactivation history, and biomarker deviation.',
-    requiredInputs: ['Symptoms', 'Trend', 'Whole blood/PBMC/plasma features', 'Saliva viral signal', 'Exposure context'],
+    triggerCriteria: [
+      'Saliva viral signal >= 6 or prior viral reactivation history present.',
+      'PBMC immune shift >= 5 or persistent immune baseline shift present.',
+      'Rash/dermatitis >= 4 or mixed symptoms without a dominant respiratory pattern.',
+    ],
+    minimumRequiredInputs: ['Symptoms', 'Trend', 'PBMC/whole-blood/plasma features', 'Saliva viral signal', 'Exposure context'],
     dags: ['Immune Risk', 'Microhost Risk', 'Medical Risk'],
+    redFlags: ['Worsening trend with high viral signal', 'High fatigue with feverishness', 'CMO unavailable'],
+    allowedActions: ['Continue routine monitoring', 'Repeat check in X hours', 'Isolate / infection-control precautions', 'Escalate to CMO', 'Escalate to ground urgently'],
+    neverEvents: ['No reassurance if viral signal and trend are both rising', 'No predefined support bundle if required inputs are missing'],
     confounders: ['Sleep debt and stress effects', 'Nonspecific inflammatory elevation'],
+    validationTarget: 'Correctly route mild reactivation-like cases to watch/escalate without overcalling diagnosis.',
   },
   respiratory_syndrome: {
     id: 'respiratory_syndrome',
     name: 'Respiratory infectious syndrome',
-    goal: 'Support monitor vs isolate vs treat vs escalate for respiratory-like events.',
+    goal: 'Support monitor vs isolate vs onboard support vs urgent escalation for respiratory-like events.',
     triggerSummary: 'Feverishness + respiratory burden + worsening trend + exposure concern.',
-    requiredInputs: ['Symptoms', 'Trend', 'Whole blood inflammation/interferon', 'Exposure context', 'Ops constraints'],
+    triggerCriteria: [
+      'Respiratory symptoms >= 4.',
+      'Feverishness >= 4 or whole-blood inflammation >= 5.',
+      'Worsening trend, close-contact exposure, or cabin exposure concern present.',
+    ],
+    minimumRequiredInputs: ['Symptoms', 'Trend', 'Whole-blood inflammation/interferon', 'Exposure context', 'Ops constraints'],
     dags: ['Medical Risk', 'Microhost Risk', 'Immune Risk'],
+    redFlags: ['Rapidly worsening respiratory burden', 'High fatigue with feverishness', 'Isolation unavailable'],
+    allowedActions: ['Continue routine monitoring', 'Repeat check in X hours', 'Isolate / infection-control precautions', 'Start predefined countermeasure bundle', 'Escalate to CMO', 'Escalate to ground urgently'],
+    neverEvents: ['No low-risk reassurance when respiratory red flags are active', 'No unsupported disease diagnosis'],
     confounders: ['Cabin irritant effects', 'Fatigue-only performance decline'],
+    validationTarget: 'Prefer safer triage when respiratory symptoms, trend, and exposure cluster together.',
   },
   delayed_support_event: {
     id: 'delayed_support_event',
     name: 'Delayed-ground-support medical event',
     goal: 'Preserve safe decisions when ground support is delayed.',
     triggerSummary: 'Clinically relevant concern with comm delay that limits real-time consultation.',
-    requiredInputs: ['Core symptoms', 'Trend', 'Biomarker severity', 'Comm delay', 'CMO and med-kit status'],
+    triggerCriteria: [
+      'Communication delay >= 10 minutes, or any delay with moderate/high triage concern.',
+      'Medical Event mode or worsening trend present.',
+      'Onboard actions must be executable before ground response.',
+    ],
+    minimumRequiredInputs: ['Core symptoms', 'Trend', 'Biomarker severity', 'Comm delay', 'CMO and med-kit status'],
     dags: ['Medical Risk', 'Immune Risk', 'Pharm Risk'],
+    redFlags: ['Long comm delay', 'High triage band', 'CMO unavailable'],
+    allowedActions: ['Repeat check in X hours', 'Start predefined countermeasure bundle', 'Escalate to CMO', 'Escalate to ground urgently'],
+    neverEvents: ['No recommendation that depends on real-time ground support when delay is high', 'No low-risk reassurance if red flags are active'],
     confounders: ['Delay-driven anxiety', 'Incomplete handoff to ground'],
+    validationTarget: 'Escalate earlier when the same clinical state becomes riskier because support is delayed.',
   },
   constrained_support_event: {
     id: 'constrained_support_event',
     name: 'Resource-constrained infection event',
     goal: 'Deliver safest fallback actions with personnel/equipment constraints.',
     triggerSummary: 'CMO unavailable, med-kit limited, or isolation unavailable during infection concern.',
-    requiredInputs: ['Core symptoms', 'Trend', 'Biomarker severity', 'CMO status', 'Med-kit and isolation status'],
+    triggerCriteria: [
+      'CMO unavailable, med-kit limited, or isolation unavailable.',
+      'Any moderate/high triage concern or worsening trend.',
+      'Fallback plan must avoid actions that cannot be executed onboard.',
+    ],
+    minimumRequiredInputs: ['Core symptoms', 'Trend', 'Biomarker severity', 'CMO status', 'Med-kit and isolation status'],
     dags: ['Medical Risk', 'Pharm Risk', 'Immune Risk'],
+    redFlags: ['CMO unavailable', 'Medical kit constrained', 'Isolation capability unavailable'],
+    allowedActions: ['Repeat check in X hours', 'Isolate / infection-control precautions', 'Start predefined countermeasure bundle', 'Escalate to CMO', 'Escalate to ground urgently'],
+    neverEvents: ['No action requiring unavailable resources', 'No reassurance when resource constraints block safe isolation or support'],
     confounders: ['Operational constraints masking clinical severity', 'Inability to isolate despite exposure concern'],
+    validationTarget: 'Return the safest fallback plan under degraded operations.',
   },
 };
 
 const SCENARIO_IDS = Object.keys(SCENARIO_LIBRARY);
+
+const MVP_SCOPE = {
+  claim: 'Remote infection-event triage for respiratory-like or viral-reactivation-like presentations under delayed or constrained support.',
+  primaryQuestion: 'What should the crew do right now, and what information would change that decision?',
+  outputBoundary: 'Decision support for monitoring, repeat checks, precautions, predefined support bundles, and escalation. No bedside diagnosis claim.',
+};
+
+const VALIDATION_TARGETS = [
+  'Correct scenario assignment against expert-authored cases.',
+  'Safe escalation when red flags or operational constraints are present.',
+  'No dangerous false reassurance when evidence is missing, inconsistent, or worsening.',
+  'Clinician-rated usefulness of DAG explanations and node targets.',
+  'Ablation comparison of scenario triage with and without DAG reasoning.',
+];
+
+const FEATURE_TABLE = [
+  { feature: 'Feverishness', source: 'Crew symptom report', meaning: 'Potential systemic illness burden', scenarioUse: 'Respiratory triage and red-flag escalation', actionImplication: 'Increase reassessment urgency when paired with fatigue or worsening trend' },
+  { feature: 'Respiratory symptoms', source: 'Crew symptom report', meaning: 'Respiratory-like presentation burden', scenarioUse: 'Respiratory syndrome routing', actionImplication: 'Supports precautions, repeat check, and escalation when trending worse' },
+  { feature: 'PBMC immune shift', source: 'Derived PBMC feature', meaning: 'Immune-state deviation from expected baseline', scenarioUse: 'Reactivation / immune dysregulation watch', actionImplication: 'Supports repeat sampling and watch-list status' },
+  { feature: 'Saliva viral signal', source: 'Derived saliva feature', meaning: 'Viral shedding/reactivation-like signal', scenarioUse: 'Reactivation watch and uncertainty reduction', actionImplication: 'Supports targeted reassessment and CMO escalation if worsening' },
+  { feature: 'Comm delay', source: 'Operations context', meaning: 'Ground support latency', scenarioUse: 'Delayed-support event routing', actionImplication: 'Prioritizes onboard executable actions and early downlink packet' },
+  { feature: 'CMO / med-kit / isolation status', source: 'Operations context', meaning: 'Execution capability constraints', scenarioUse: 'Constrained-support event routing', actionImplication: 'Blocks resource-dependent recommendations and triggers safer fallback plan' },
+];
+
+function scenarioCandidatesForState(state, band = 'Low') {
+  return [
+    {
+      id: 'reactivation_watch',
+      score:
+        (state.salivaViralSignal >= 6 ? 3 : 0) +
+        (state.priorViralReactivationHistory ? 2 : 0) +
+        (state.rashOrDermatitis >= 4 ? 2 : 0) +
+        (state.immuneBaselineShift ? 1 : 0) +
+        (state.pbmcImmuneShift >= 5 ? 1 : 0),
+    },
+    {
+      id: 'respiratory_syndrome',
+      score:
+        (state.respiratorySymptoms >= 4 ? 3 : 0) +
+        (state.feverishness >= 4 ? 2 : 0) +
+        (state.trendWorsening ? 2 : 0) +
+        (state.closeContactExposure ? 1 : 0) +
+        (state.wholeBloodInflammation >= 5 ? 1 : 0),
+    },
+    {
+      id: 'delayed_support_event',
+      score:
+        (state.commDelayMinutes >= 10 ? 4 : state.commDelayMinutes > 0 ? 2 : 0) +
+        (band === 'High' ? 2 : band === 'Moderate' ? 1 : 0) +
+        (state.mode === 'Medical Event' ? 1 : 0),
+    },
+    {
+      id: 'constrained_support_event',
+      score:
+        (!state.cmoAvailable ? 3 : 0) +
+        (state.medKitStatus === 'Limited' ? 2 : 0) +
+        (state.isolationCapability === 'Unavailable' ? 2 : 0) +
+        (band === 'High' ? 2 : band === 'Moderate' ? 1 : 0),
+    },
+  ];
+}
+
+function routeScenarioIdFromCandidates(scenarioCandidates) {
+  const scenarioById = Object.fromEntries(scenarioCandidates.map((candidate) => [candidate.id, candidate]));
+
+  if (scenarioById.constrained_support_event.score >= 3) {
+    return 'constrained_support_event';
+  }
+  if (scenarioById.delayed_support_event.score >= 4) {
+    return 'delayed_support_event';
+  }
+  if (scenarioById.reactivation_watch.score >= scenarioById.respiratory_syndrome.score) {
+    return 'reactivation_watch';
+  }
+  return 'respiratory_syndrome';
+}
+
+function routeScenarioIdForState(state, band = 'Low') {
+  return routeScenarioIdFromCandidates(scenarioCandidatesForState(state, band));
+}
+
+const SCENARIO_SELF_TESTS = [
+  { name: 'Four scenario families locked', pass: SCENARIO_IDS.length === 4 },
+  { name: 'Scenario matrix fields present', pass: SCENARIO_IDS.every((id) => SCENARIO_LIBRARY[id].triggerCriteria?.length && SCENARIO_LIBRARY[id].minimumRequiredInputs?.length && SCENARIO_LIBRARY[id].allowedActions?.length && SCENARIO_LIBRARY[id].neverEvents?.length) },
+  { name: 'Scenario actions stay bounded', pass: SCENARIO_IDS.every((id) => SCENARIO_LIBRARY[id].allowedActions.every((action) => ['Continue routine monitoring', 'Repeat check in X hours', 'Isolate / infection-control precautions', 'Start predefined countermeasure bundle', 'Escalate to CMO', 'Escalate to ground urgently'].includes(action))) },
+  { name: 'Feature table present', pass: FEATURE_TABLE.length >= 6 },
+  { name: 'I4 presets route to expected families', pass: Object.values(PRESETS).filter((preset) => preset.targetScenarioFamily).every((preset) => routeScenarioIdForState(preset) === preset.targetScenarioFamily) },
+];
 
 const SCENARIO_NODE_TARGETS = {
   reactivation_watch: {
@@ -388,6 +516,10 @@ const SCENARIO_NODE_TARGETS = {
   },
 };
 
+const DAG_SCENARIO_SELF_TESTS = [
+  { name: 'Scenario DAG node targets configured', pass: SCENARIO_IDS.every((id) => SCENARIO_LIBRARY[id].dags.every((dagName) => SCENARIO_NODE_TARGETS[id]?.[dagName]?.length > 0)) },
+];
+
 function scoreBand(score) {
   if (score >= 50) return 'High';
   if (score >= 28) return 'Moderate';
@@ -402,7 +534,7 @@ function missionPriorityForBand(band) {
 
 export default function CDSSInfectionRiskPrototype() {
   const [state, setState] = useState(PRESETS.i4_watch);
-  const [activeTab, setActiveTab] = useState('surveillance');
+  const [activeTab, setActiveTab] = useState('event');
   const [expandedAgents, setExpandedAgents] = useState({});
   const [copyFeedback, setCopyFeedback] = useState('idle');
   const [dagFocus, setDagFocus] = useState('Immune Risk');
@@ -736,52 +868,9 @@ export default function CDSSInfectionRiskPrototype() {
     const band = guardrailEscalationTriggered ? 'Moderate' : modelBand;
     const missionPriority = missionPriorityForBand(band);
 
-    const scenarioCandidates = [
-      {
-        id: 'reactivation_watch',
-        score:
-          (state.salivaViralSignal >= 6 ? 3 : 0) +
-          (state.priorViralReactivationHistory ? 2 : 0) +
-          (state.rashOrDermatitis >= 4 ? 2 : 0) +
-          (state.immuneBaselineShift ? 1 : 0) +
-          (state.pbmcImmuneShift >= 5 ? 1 : 0),
-      },
-      {
-        id: 'respiratory_syndrome',
-        score:
-          (state.respiratorySymptoms >= 4 ? 3 : 0) +
-          (state.feverishness >= 4 ? 2 : 0) +
-          (state.trendWorsening ? 2 : 0) +
-          (state.closeContactExposure ? 1 : 0) +
-          (state.wholeBloodInflammation >= 5 ? 1 : 0),
-      },
-      {
-        id: 'delayed_support_event',
-        score:
-          (state.commDelayMinutes >= 10 ? 4 : state.commDelayMinutes > 0 ? 2 : 0) +
-          (band === 'High' ? 2 : band === 'Moderate' ? 1 : 0) +
-          (state.mode === 'Medical Event' ? 1 : 0),
-      },
-      {
-        id: 'constrained_support_event',
-        score:
-          (!state.cmoAvailable ? 3 : 0) +
-          (state.medKitStatus === 'Limited' ? 2 : 0) +
-          (state.isolationCapability === 'Unavailable' ? 2 : 0) +
-          (band === 'High' ? 2 : band === 'Moderate' ? 1 : 0),
-      },
-    ];
-
+    const scenarioCandidates = scenarioCandidatesForState(state, band);
     const scenarioById = Object.fromEntries(scenarioCandidates.map((candidate) => [candidate.id, candidate]));
-    let routedScenarioId = 'respiratory_syndrome';
-
-    if (scenarioById.constrained_support_event.score >= 3) {
-      routedScenarioId = 'constrained_support_event';
-    } else if (scenarioById.delayed_support_event.score >= 4) {
-      routedScenarioId = 'delayed_support_event';
-    } else if (scenarioById.reactivation_watch.score >= scenarioById.respiratory_syndrome.score) {
-      routedScenarioId = 'reactivation_watch';
-    }
+    const routedScenarioId = routeScenarioIdFromCandidates(scenarioCandidates);
 
     const routedScenario = SCENARIO_LIBRARY[routedScenarioId];
     const scenarioMatrix = SCENARIO_IDS.map((id) => ({
@@ -837,7 +926,7 @@ export default function CDSSInfectionRiskPrototype() {
     const reassessmentHours = redFlags.length > 0 || band === 'High' ? 4 : band === 'Moderate' ? 12 : 24;
     const boundedProtocolActions = [];
     if (missingInputs.length > 0) {
-      boundedProtocolActions.push('Collect required inputs before treatment recommendation.');
+      boundedProtocolActions.push('Collect required inputs before starting a predefined support bundle.');
     }
     if (band === 'Low' && redFlags.length === 0) {
       boundedProtocolActions.push('Continue routine monitoring.');
@@ -859,7 +948,7 @@ export default function CDSSInfectionRiskPrototype() {
     const protocolActions = [...new Set(boundedProtocolActions)].slice(0, 6);
     const neverEvents = [
       {
-        rule: 'No treatment recommendation if required inputs are missing.',
+        rule: 'No predefined support bundle if required inputs are missing.',
         triggered: missingInputs.length > 0,
       },
       {
@@ -877,10 +966,25 @@ export default function CDSSInfectionRiskPrototype() {
       scenario: routedScenario.name,
       immediateAction: protocolActions[0] || confirmatoryActions[0] || 'Continue routine monitoring.',
       actions: protocolActions,
+      allowedActions: routedScenario.allowedActions,
       reassessmentHours,
       redFlags,
       missingInputs,
       neverEvents,
+    };
+
+    const studyReadiness = {
+      mvpClaim: MVP_SCOPE.claim,
+      caseSetTarget: '20-30 synthetic or expert-authored cases before manuscript submission.',
+      primaryOutcome: 'Did the system make the safer triage decision?',
+      evaluationAxes: VALIDATION_TARGETS,
+      currentCaseSignals: {
+        scenarioAssigned: routedScenario.name,
+        safeEscalation: protocolActions.some((action) => action.includes('Escalate')),
+        falseReassuranceBlocked: neverEventViolations.length > 0 || band !== 'Low',
+        dagExplanationAvailable: dagEvidenceMap.dagModels.length > 0 && dagEvidenceMap.strongestDrivers.length > 0,
+      },
+      ablationQuestion: 'Compare the same scenario router with DAG drivers hidden versus visible to rate explanation usefulness.',
     };
 
     const countermeasures =
@@ -922,9 +1026,9 @@ export default function CDSSInfectionRiskPrototype() {
       { step: 'Characterize', status: 'complete', detail: `${syndrome} based on biomarker + symptom/context fusion.` },
       { step: 'Route scenario', status: 'complete', detail: `Scenario router selected: ${routedScenario.name}.` },
       { step: 'Reason', status: 'complete', detail: `DAG evidence map highlighted ${dagEvidenceMap.strongestDrivers[0] || 'no dominant driver'}.` },
-      { step: 'Triage', status: 'complete', detail: `${band} risk with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.` },
+      { step: 'Triage', status: 'complete', detail: `${band} triage band with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.` },
       { step: 'Recommend', status: 'complete', detail: executionProtocol.immediateAction },
-      { step: 'Execute', status: band === 'High' ? 'action' : band === 'Moderate' ? 'watch' : 'routine', detail: confirmatoryActions[0] },
+      { step: 'Execute', status: band === 'High' ? 'action' : band === 'Moderate' ? 'watch' : 'routine', detail: executionProtocol.immediateAction },
       { step: 'Communicate', status: state.commDelayMinutes > 0 || band === 'High' ? 'action' : 'routine', detail: state.commDelayMinutes > 0 ? `Ground support delayed by ~${state.commDelayMinutes} min.` : 'Downlink optional unless trend worsens.' },
     ];
 
@@ -944,12 +1048,12 @@ export default function CDSSInfectionRiskPrototype() {
       orchestrator: 'Decision fusion layer',
       inputsReceived: agentHandoffs.map((a) => ({ agent: a.agent, score: a.score, confidence: a.confidence })),
       mergedAssessment: syndrome,
-      riskBand: band,
-      modelRiskBand: modelBand,
+      triageBand: band,
+      internalModelBand: modelBand,
       integratedScore,
       confidence,
       missionPriority,
-      decisionSummary: `Integrated ${band.toLowerCase()} infectious-risk assessment with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.`,
+      decisionSummary: `Scenario-specific ${band.toLowerCase()} triage support with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.`,
       nextAction: executionProtocol.immediateAction,
       countermeasureLead: countermeasures[0],
       routedScenario: routedScenario.name,
@@ -964,18 +1068,19 @@ export default function CDSSInfectionRiskPrototype() {
       dagModels: routedScenario.dags,
       crewId: state.crewId,
       missionDay: state.missionDay,
-      probablePattern: syndrome,
-      riskBand: band,
-      modelRiskBand: modelBand,
+      syndromeSupportLabel: syndrome,
+      triageBand: band,
+      internalModelBand: modelBand,
       confidence,
       missionPriority,
+      immediateAction: executionProtocol.immediateAction,
       immediateActions: executionProtocol.actions,
       reassessmentHours: executionProtocol.reassessmentHours,
       redFlags,
       neverEventViolations,
-      countermeasures,
+      boundedSupportPlan: countermeasures,
       jitTraining,
-      communicationPlan: state.commDelayMinutes > 0 ? `Prepare onboard execution first; expected ground delay ~${state.commDelayMinutes} min.` : 'Ground consultation available if escalation is needed.',
+      communicationPlan: state.commDelayMinutes > 0 ? `Prepare onboard support plan first; expected ground delay ~${state.commDelayMinutes} min.` : 'Ground consultation available if escalation is needed.',
     };
 
     const downlink = [
@@ -984,18 +1089,18 @@ export default function CDSSInfectionRiskPrototype() {
       `Mode: ${state.mode}`,
       `Routed scenario: ${routedScenario.name}`,
       `DAG models: ${routedScenario.dags.join(', ')}`,
-      `Risk band: ${band}`,
-      `Model risk band (pre-guardrail): ${modelBand}`,
-      `Integrated score: ${integratedScore}/100`,
+      `Triage band: ${band}`,
+      `Internal model band (pre-guardrail): ${modelBand}`,
+      `Internal fusion score: ${integratedScore}/100`,
       `Confidence: ${confidence}`,
-      `Probable syndrome: ${syndrome}`,
+      `Syndrome support label: ${syndrome}`,
       `Mission priority: ${missionPriority}`,
       `Top drivers: ${allDrivers.slice(0, 3).map((d) => d.label).join('; ') || 'none'}`,
       `Biomarker agent: ${biomarkerAgent.summary}`,
       `Context agent: ${contextAgent.summary}`,
       `Operations agent: ${operationsAgent.summary}`,
       `Immediate action: ${executionProtocol.immediateAction}`,
-      `Primary countermeasure: ${countermeasures[0]}`,
+      `Primary support measure: ${countermeasures[0]}`,
       `Red flags: ${redFlags.length ? redFlags.join('; ') : 'none'}`,
       `Never-event violations: ${neverEventViolations.length ? neverEventViolations.join('; ') : 'none'}`,
     ].join('\n');
@@ -1018,6 +1123,10 @@ export default function CDSSInfectionRiskPrototype() {
       neverEventViolations,
       routedScenario,
       scenarioMatrix,
+      mvpScope: MVP_SCOPE,
+      validationTargets: VALIDATION_TARGETS,
+      featureTable: FEATURE_TABLE,
+      studyReadiness,
       dagEvidenceMap,
       dagNodeTargetsByGraph,
       countermeasures,
@@ -1197,11 +1306,11 @@ export default function CDSSInfectionRiskPrototype() {
       <div className="space-y-6 xl:col-span-1">
         <div className={card}>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">Integrated CDSS output</h2>
-            <div className={`rounded-2xl border px-3 py-1 text-sm font-semibold ${severityStyles[analysis.band]}`}>{analysis.band} risk</div>
+            <h2 className="text-xl font-semibold">Internal fusion score</h2>
+            <div className={`rounded-2xl border px-3 py-1 text-sm font-semibold ${severityStyles[analysis.band]}`}>{analysis.band} triage</div>
           </div>
           <div className="mt-5">
-            <div className="text-sm text-slate-500">Integrated score</div>
+            <div className="text-sm text-slate-500">Secondary model score</div>
             <div className="mt-1 text-5xl font-bold tracking-tight">{analysis.integratedScore}</div>
             <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-100">
               <div className={`h-full ${analysis.band === 'Low' ? 'bg-green-500' : analysis.band === 'Moderate' ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${analysis.integratedScore}%` }} />
@@ -1212,7 +1321,7 @@ export default function CDSSInfectionRiskPrototype() {
             <div className={`rounded-full px-3 py-1 text-xs font-semibold ${missionPriorityStyles[analysis.missionPriority]}`}>Priority: {analysis.missionPriority}</div>
           </div>
           <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-            <div className="font-semibold text-slate-900">Most likely pattern</div>
+            <div className="font-semibold text-slate-900">Syndrome support label</div>
             <p className="mt-2">{analysis.syndrome}</p>
           </div>
         </div>
@@ -1306,62 +1415,100 @@ export default function CDSSInfectionRiskPrototype() {
     <>
       <div className="space-y-6 xl:col-span-2">
         <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Event workup console</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Probable pattern</div>
-              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.syndrome}</div>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">MVP decision card</div>
+              <h2 className="mt-1 text-2xl font-semibold">Remote infection-event triage</h2>
+              <p className="mt-2 max-w-3xl text-sm text-slate-600">{analysis.mvpScope.primaryQuestion}</p>
             </div>
+            <div className={`rounded-2xl border px-3 py-1 text-sm font-semibold ${severityStyles[analysis.band]}`}>{analysis.band} triage</div>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Mission priority</div>
-              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.missionPriority}</div>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Routed scenario family</div>
-              <div className="mt-2 text-base font-medium text-slate-800">{analysis.routedScenario.name}</div>
+              <div className="text-sm font-semibold text-slate-900">Routed scenario</div>
+              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.routedScenario.name}</div>
               <div className="mt-2 text-sm text-slate-600">{analysis.routedScenario.goal}</div>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Risk guardrail check</div>
-              <div className="mt-2 text-base font-medium text-slate-800">Model: {analysis.modelBand} | Guardrailed: {analysis.band}</div>
+              <div className="text-sm font-semibold text-slate-900">Syndrome support label</div>
+              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.syndrome}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Confidence and priority</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Confidence: {analysis.confidence}</span>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${missionPriorityStyles[analysis.missionPriority]}`}>Priority: {analysis.missionPriority}</span>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Immediate action</div>
+              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.executionProtocol.immediateAction}</div>
+              <div className="mt-2 text-sm text-slate-600">Next reassessment: {analysis.executionProtocol.reassessmentHours} hours</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
+              <div className="text-sm font-semibold text-slate-900">Internal fusion score</div>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <span className="text-3xl font-bold tracking-tight text-slate-900">{analysis.integratedScore}/100</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Internal model band: {analysis.modelBand}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Guardrailed band: {analysis.band}</span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                <div className={`h-full ${analysis.band === 'Low' ? 'bg-green-500' : analysis.band === 'Moderate' ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${analysis.integratedScore}%` }} />
+              </div>
               <div className="mt-2 text-sm text-slate-600">{analysis.neverEventViolations.length ? 'Guardrail override active for safety.' : 'No guardrail override triggered.'}</div>
             </div>
           </div>
         </div>
 
         <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Scenario router and DAG reasoning layer</h2>
+          <h2 className="mb-4 text-xl font-semibold">Scenario matrix</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3">
-              {analysis.scenarioMatrix.map((scenario) => (
-                <div key={`scenario-router-${scenario.id}`} className={`rounded-2xl border p-4 ${scenario.active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm font-semibold">{scenario.name}</div>
-                    <div className={`rounded-full px-2 py-1 text-xs font-semibold ${scenario.active ? 'bg-slate-100 text-slate-900' : 'bg-slate-200 text-slate-700'}`}>score {scenario.score}</div>
+            {analysis.scenarioMatrix.map((scenario) => (
+              <div key={`scenario-router-${scenario.id}`} className={`rounded-2xl border p-4 ${scenario.active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-semibold">{scenario.name}</div>
+                  <div className={`rounded-full px-2 py-1 text-xs font-semibold ${scenario.active ? 'bg-slate-100 text-slate-900' : 'bg-slate-200 text-slate-700'}`}>router score {scenario.score}</div>
+                </div>
+                <div className={`mt-2 text-sm ${scenario.active ? 'text-slate-200' : 'text-slate-600'}`}>{scenario.triggerSummary}</div>
+                <div className="mt-3 grid gap-3 text-xs md:grid-cols-2">
+                  <div>
+                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Trigger criteria</div>
+                    <div className="mt-1 space-y-1">
+                      {scenario.triggerCriteria.map((item, index) => <div key={`${scenario.id}-trigger-${index}`}>{item}</div>)}
+                    </div>
                   </div>
-                  <div className={`mt-2 text-sm ${scenario.active ? 'text-slate-200' : 'text-slate-600'}`}>{scenario.triggerSummary}</div>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-3">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">DAGs used</div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {analysis.dagEvidenceMap.dagModels.map((dag) => <span key={`dag-${dag}`} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">{dag}</span>)}
+                  <div>
+                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Minimum inputs</div>
+                    <div className="mt-1">{scenario.minimumRequiredInputs.join(', ')}</div>
+                  </div>
+                  <div>
+                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>DAGs</div>
+                    <div className="mt-1">{scenario.dags.join(', ')}</div>
+                  </div>
+                  <div>
+                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Red flags</div>
+                    <div className="mt-1">{scenario.redFlags.join(', ')}</div>
+                  </div>
+                  <div>
+                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Allowed actions</div>
+                    <div className="mt-1">{scenario.allowedActions.join(', ')}</div>
+                  </div>
+                  <div>
+                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Never-events</div>
+                    <div className="mt-1">{scenario.neverEvents.join(', ')}</div>
+                  </div>
+                  <div>
+                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Validation target</div>
+                    <div className="mt-1">{scenario.validationTarget}</div>
+                  </div>
                 </div>
               </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Strongest causal drivers</div>
-                <ul className="mt-2 space-y-2 text-sm text-slate-700">
-                  {analysis.dagEvidenceMap.strongestDrivers.map((item, index) => <li key={`driver-${index}`} className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{item}</li>)}
-                </ul>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
         <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Linked DAG panel</h2>
+          <h2 className="mb-4 text-xl font-semibold">DAG reasoning layer</h2>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <label className="block space-y-1 md:w-[340px]">
               <span className="text-sm font-medium text-slate-700">DAG focus</span>
@@ -1405,6 +1552,26 @@ export default function CDSSInfectionRiskPrototype() {
               ) : (
                 <span className="rounded-full bg-white px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200">No node targets configured</span>
               )}
+            </div>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Strongest upstream drivers</div>
+              <div className="mt-2 space-y-2 text-sm text-slate-700">
+                {analysis.dagEvidenceMap.strongestDrivers.map((item, index) => <div key={`dag-driver-${index}`} className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{item}</div>)}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Missing or required inputs</div>
+              <div className="mt-2 space-y-2 text-sm text-slate-700">
+                {(analysis.missingInputs.length ? analysis.missingInputs : analysis.routedScenario.minimumRequiredInputs).map((item, index) => <div key={`required-input-${index}`} className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{item}</div>)}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Uncertainty reducers</div>
+              <div className="mt-2 space-y-2 text-sm text-slate-700">
+                {analysis.dagEvidenceMap.uncertaintyReducers.slice(0, 3).map((item, index) => <div key={`dag-uncertainty-${index}`} className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{item}</div>)}
+              </div>
             </div>
           </div>
           <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
@@ -1480,6 +1647,12 @@ export default function CDSSInfectionRiskPrototype() {
             ))}
           </div>
           <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Allowed action set</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {analysis.executionProtocol.allowedActions.map((action) => <span key={`allowed-action-${action}`} className="rounded-full bg-white px-3 py-1 text-xs text-slate-700 ring-1 ring-slate-200">{action}</span>)}
+            </div>
+          </div>
+          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Red flags</div>
             <div className="mt-2 flex flex-wrap gap-2">
               {analysis.executionProtocol.redFlags.length
@@ -1513,6 +1686,62 @@ export default function CDSSInfectionRiskPrototype() {
               <ul className="mt-2 space-y-2 text-sm text-slate-700">
                 {analysis.dagEvidenceMap.uncertaintyReducers.map((item, index) => <li key={`uncertainty-${index}`} className="rounded-xl bg-slate-50 px-3 py-2">{item}</li>)}
               </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Study readiness</h2>
+          <div className="rounded-2xl bg-slate-50 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">MVP claim</div>
+            <div className="mt-2 text-sm text-slate-700">{analysis.studyReadiness.mvpClaim}</div>
+            <div className="mt-2 text-sm font-semibold text-slate-900">Primary outcome: {analysis.studyReadiness.primaryOutcome}</div>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Validation targets</div>
+              <div className="mt-2 space-y-2">
+                {analysis.validationTargets.map((target, index) => <div key={`validation-target-${index}`} className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">{target}</div>)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current case readiness</div>
+              <div className="mt-2 space-y-2">
+                {Object.entries(analysis.studyReadiness.currentCaseSignals).map(([key, value]) => (
+                  <div key={`readiness-${key}`} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                    <span className="text-slate-700">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}</span>
+                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${value ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{value ? 'yes' : 'needs review'}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">{analysis.studyReadiness.ablationQuestion}</div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Feature table</div>
+            <div className="mt-2 overflow-auto rounded-2xl border border-slate-200">
+              <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
+                <thead className="bg-slate-50 text-slate-500">
+                  <tr>
+                    <th className="px-3 py-2 font-semibold">Feature</th>
+                    <th className="px-3 py-2 font-semibold">Source</th>
+                    <th className="px-3 py-2 font-semibold">Biological meaning</th>
+                    <th className="px-3 py-2 font-semibold">Scenario use</th>
+                    <th className="px-3 py-2 font-semibold">Action implication</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
+                  {analysis.featureTable.map((feature) => (
+                    <tr key={`feature-${feature.feature}`}>
+                      <td className="px-3 py-2 font-semibold text-slate-900">{feature.feature}</td>
+                      <td className="px-3 py-2">{feature.source}</td>
+                      <td className="px-3 py-2">{feature.meaning}</td>
+                      <td className="px-3 py-2">{feature.scenarioUse}</td>
+                      <td className="px-3 py-2">{feature.actionImplication}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1596,7 +1825,7 @@ export default function CDSSInfectionRiskPrototype() {
       <div className="mx-auto max-w-7xl space-y-6">
         <div className={card}>
           <div className="flex flex-wrap gap-2">
-            {SELF_TESTS.map((test) => (
+            {[...SELF_TESTS, ...SCENARIO_SELF_TESTS, ...DAG_SCENARIO_SELF_TESTS].map((test) => (
               <div key={test.name} className={`rounded-full px-3 py-1 text-xs font-semibold ${test.pass ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                 {test.name}
               </div>
@@ -1607,8 +1836,8 @@ export default function CDSSInfectionRiskPrototype() {
         <div className={card}>
           <div className="flex flex-wrap gap-2">
             {[
-              { id: 'surveillance', label: 'Surveillance' },
               { id: 'event', label: 'Event Management' },
+              { id: 'surveillance', label: 'Surveillance' },
               { id: 'communication', label: 'Communication' },
             ].map((tab) => (
               <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`rounded-2xl px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
@@ -1621,15 +1850,20 @@ export default function CDSSInfectionRiskPrototype() {
         <div className={card}>
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Inspiration4 Infection-Risk CDSS</h1>
-              <p className="mt-2 max-w-4xl text-sm text-slate-600">A mission-usable prototype modeled on ExMC CDSS ideas: multimodal data fusion, context-aware triage, reduced cognitive load, just-in-time support, and a clear detect → characterize → triage → recommend → execute → communicate flow for Earth-independent medical operations. The current fusion weights and thresholds are internally retuned on a synthetic Inspiration4-style benchmark.</p>
+              <h1 className="text-3xl font-bold tracking-tight">Remote Infection-Event Triage CDSS</h1>
+              <p className="mt-2 max-w-4xl text-sm text-slate-600">{analysis.mvpScope.claim} The CDSS returns bounded onboard actions, while the DAG panel explains upstream drivers, missing information, and uncertainty.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(PRESETS).map(([key, preset]) => (
-                <button key={key} type="button" onClick={() => loadPreset(key)} className={`rounded-2xl px-4 py-2 text-sm font-medium ${state.label === preset.label ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                  {preset.label}
-                </button>
-              ))}
+              {Object.entries(PRESETS).map(([key, preset]) => {
+                const isSelected = state.label === preset.label;
+                const mappedScenario = preset.targetScenarioFamily ? SCENARIO_LIBRARY[preset.targetScenarioFamily]?.name : '';
+                return (
+                  <button key={key} type="button" onClick={() => loadPreset(key)} className={`rounded-2xl px-4 py-2 text-left text-sm font-medium ${isSelected ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                    <span className="block">{preset.label}</span>
+                    {mappedScenario && <span className={`mt-1 block text-[10px] font-semibold uppercase tracking-wide ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>{mappedScenario}</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
