@@ -317,6 +317,7 @@ export default function CDSSInfectionRiskPrototype() {
   const [activeTab, setActiveTab] = useState('surveillance');
   const [expandedAgents, setExpandedAgents] = useState({});
   const [copyFeedback, setCopyFeedback] = useState('idle');
+  const [dagFocus, setDagFocus] = useState('Immune Risk');
 
   const toggleAgent = (name) => {
     setExpandedAgents((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -938,6 +939,24 @@ export default function CDSSInfectionRiskPrototype() {
     };
   }, [state, biomarkerAgent, contextAgent, exposureAgent, syndromeAgent, operationsAgent]);
 
+  const appBaseUrl = useMemo(() => {
+    if (typeof window === 'undefined') return '';
+    return new URL(import.meta.env.BASE_URL, window.location.origin).toString();
+  }, []);
+
+  const activeDagFocus = analysis.dagEvidenceMap.dagModels.includes(dagFocus)
+    ? dagFocus
+    : analysis.dagEvidenceMap.dagModels[0] || 'Immune Risk';
+
+  const dagCatalogRoute = useMemo(() => {
+    if (!appBaseUrl) return '';
+    const url = new URL('dag-catalog/index.html', appBaseUrl);
+    if (activeDagFocus) {
+      url.searchParams.set('risk', activeDagFocus);
+    }
+    return url.toString();
+  }, [appBaseUrl, activeDagFocus]);
+
   const handleCopySummary = async () => {
     if (!navigator?.clipboard?.writeText) {
       setCopyFeedback('unsupported');
@@ -1236,6 +1255,32 @@ export default function CDSSInfectionRiskPrototype() {
                 </ul>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Linked DAG panel</h2>
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <label className="block space-y-1 md:w-[340px]">
+              <span className="text-sm font-medium text-slate-700">DAG focus</span>
+              <select className={inputClass} value={activeDagFocus} onChange={(e) => setDagFocus(e.target.value)}>
+                {analysis.dagEvidenceMap.dagModels.map((dag) => (
+                  <option key={`dag-focus-${dag}`} value={dag}>
+                    {dag}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <a href={dagCatalogRoute} target="_blank" rel="noreferrer" className="inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+              Open DAG route
+            </a>
+          </div>
+          <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
+            <iframe
+              title={`Linked DAG: ${activeDagFocus}`}
+              src={dagCatalogRoute}
+              className="h-[560px] w-full border-0"
+            />
           </div>
         </div>
 

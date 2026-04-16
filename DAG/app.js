@@ -51,6 +51,36 @@ let currentRiskSearch = "";
 let currentLayoutMode = "paper";
 let currentZoom = 1;
 
+function normalizeRiskToken(value = "") {
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function getRequestedRiskToken() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  const params = new URLSearchParams(window.location.search);
+  return normalizeRiskToken(params.get("risk") || "");
+}
+
+function syncRiskParamWithCurrentGraph() {
+  if (typeof window === "undefined" || !currentGraph?.title) {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  if (url.searchParams.get("risk") === currentGraph.title) {
+    return;
+  }
+
+  url.searchParams.set("risk", currentGraph.title);
+  window.history.replaceState({}, "", url);
+}
+
 function listMarkup(items) {
   if (!items.length) {
     return "<li>None</li>";
@@ -801,6 +831,7 @@ function renderGraph() {
   graphSubtitle.textContent = currentGraph.validation.warnings.length
     ? currentGraph.validation.warnings.join(" | ")
     : "Validation clean: no missing references or duplicate edges detected.";
+  syncRiskParamWithCurrentGraph();
 
   nodeCount.textContent = String(currentGraph.validation.nodeCount);
   edgeCount.textContent = String(currentGraph.validation.edgeCount);
@@ -927,7 +958,15 @@ function updateInspector() {
 function start(catalogData) {
   catalog = catalogData;
   graphCountPill.textContent = `${catalog.graphCount} graphs`;
-  currentGraph = catalog.graphs.find((graph) => graph.title === "SANS Risk") || catalog.graphs[0];
+  const requestedRiskToken = getRequestedRiskToken();
+  currentGraph =
+    catalog.graphs.find(
+      (graph) =>
+        normalizeRiskToken(graph.title) === requestedRiskToken ||
+        normalizeRiskToken(graph.slug) === requestedRiskToken
+    ) ||
+    catalog.graphs.find((graph) => graph.title === "SANS Risk") ||
+    catalog.graphs[0];
   renderRiskList();
   renderGraph();
   updateInspector();
