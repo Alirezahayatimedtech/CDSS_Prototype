@@ -1232,6 +1232,27 @@ export default function CDSSInfectionRiskPrototype() {
     </label>
   );
 
+  const ExpandableField = ({ title, items, active = false, badgeLabel }) => {
+    const itemList = Array.isArray(items) ? items : [items];
+    const badge = badgeLabel || `${itemList.length} ${itemList.length === 1 ? 'item' : 'items'}`;
+
+    return (
+      <details className={`rounded-2xl border ${active ? 'border-slate-700 bg-slate-800/70' : 'border-slate-200 bg-white'}`}>
+        <summary className={`flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-xs font-semibold uppercase tracking-wide ${active ? 'text-slate-200' : 'text-slate-600'}`}>
+          <span>{title}</span>
+          <span className={`rounded-full px-2 py-1 normal-case tracking-normal ${active ? 'bg-slate-100 text-slate-900' : 'bg-slate-100 text-slate-600'}`}>{badge}</span>
+        </summary>
+        <div className={`space-y-2 border-t px-3 py-3 text-sm normal-case tracking-normal ${active ? 'border-slate-700 text-slate-100' : 'border-slate-100 text-slate-700'}`}>
+          {itemList.map((item, index) => (
+            <div key={`${title}-${index}`} className={`rounded-xl px-3 py-2 ${active ? 'bg-slate-900/60' : 'bg-slate-50'}`}>
+              {item}
+            </div>
+          ))}
+        </div>
+      </details>
+    );
+  };
+
   const TimelineBar = ({ item, current }) => (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs text-slate-500">
@@ -1461,7 +1482,12 @@ export default function CDSSInfectionRiskPrototype() {
         </div>
 
         <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Scenario matrix</h2>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold">Scenario matrix</h2>
+              <p className="mt-1 text-sm text-slate-600">Cards stay compact by default. Expand a field to inspect criteria, required inputs, actions, guardrails, or validation targets.</p>
+            </div>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             {analysis.scenarioMatrix.map((scenario) => (
               <div key={`scenario-router-${scenario.id}`} className={`rounded-2xl border p-4 ${scenario.active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
@@ -1470,37 +1496,21 @@ export default function CDSSInfectionRiskPrototype() {
                   <div className={`rounded-full px-2 py-1 text-xs font-semibold ${scenario.active ? 'bg-slate-100 text-slate-900' : 'bg-slate-200 text-slate-700'}`}>router score {scenario.score}</div>
                 </div>
                 <div className={`mt-2 text-sm ${scenario.active ? 'text-slate-200' : 'text-slate-600'}`}>{scenario.triggerSummary}</div>
-                <div className="mt-3 grid gap-3 text-xs md:grid-cols-2">
-                  <div>
-                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Trigger criteria</div>
-                    <div className="mt-1 space-y-1">
-                      {scenario.triggerCriteria.map((item, index) => <div key={`${scenario.id}-trigger-${index}`}>{item}</div>)}
-                    </div>
-                  </div>
-                  <div>
-                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Minimum inputs</div>
-                    <div className="mt-1">{scenario.minimumRequiredInputs.join(', ')}</div>
-                  </div>
-                  <div>
-                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>DAGs</div>
-                    <div className="mt-1">{scenario.dags.join(', ')}</div>
-                  </div>
-                  <div>
-                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Red flags</div>
-                    <div className="mt-1">{scenario.redFlags.join(', ')}</div>
-                  </div>
-                  <div>
-                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Allowed actions</div>
-                    <div className="mt-1">{scenario.allowedActions.join(', ')}</div>
-                  </div>
-                  <div>
-                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Never-events</div>
-                    <div className="mt-1">{scenario.neverEvents.join(', ')}</div>
-                  </div>
-                  <div>
-                    <div className={`font-semibold uppercase tracking-wide ${scenario.active ? 'text-slate-300' : 'text-slate-500'}`}>Validation target</div>
-                    <div className="mt-1">{scenario.validationTarget}</div>
-                  </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {scenario.dags.map((dag) => (
+                    <span key={`${scenario.id}-${dag}`} className={`rounded-full px-3 py-1 text-xs font-semibold ${scenario.active ? 'bg-white/10 text-slate-100 ring-1 ring-white/20' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}>
+                      {dag}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-4 grid gap-2">
+                  <ExpandableField title="Trigger criteria" items={scenario.triggerCriteria} active={scenario.active} />
+                  <ExpandableField title="Minimum inputs" items={scenario.minimumRequiredInputs} active={scenario.active} />
+                  <ExpandableField title="DAGs used" items={scenario.dags} active={scenario.active} badgeLabel={`${scenario.dags.length} DAGs`} />
+                  <ExpandableField title="Red flags" items={scenario.redFlags} active={scenario.active} />
+                  <ExpandableField title="Allowed actions" items={scenario.allowedActions} active={scenario.active} badgeLabel={`${scenario.allowedActions.length} actions`} />
+                  <ExpandableField title="Never-events" items={scenario.neverEvents} active={scenario.active} />
+                  <ExpandableField title="Validation target" items={scenario.validationTarget} active={scenario.active} badgeLabel="1 target" />
                 </div>
               </div>
             ))}
@@ -1646,11 +1656,8 @@ export default function CDSSInfectionRiskPrototype() {
               </div>
             ))}
           </div>
-          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Allowed action set</div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {analysis.executionProtocol.allowedActions.map((action) => <span key={`allowed-action-${action}`} className="rounded-full bg-white px-3 py-1 text-xs text-slate-700 ring-1 ring-slate-200">{action}</span>)}
-            </div>
+          <div className="mt-4 grid gap-3">
+            <ExpandableField title="Allowed action set" items={analysis.executionProtocol.allowedActions} badgeLabel={`${analysis.executionProtocol.allowedActions.length} actions`} />
           </div>
           <div className="mt-4 rounded-2xl bg-slate-50 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Red flags</div>
@@ -1660,16 +1667,19 @@ export default function CDSSInfectionRiskPrototype() {
                 : <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">No active red flags</span>}
             </div>
           </div>
-          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Never-events</div>
-            <div className="mt-2 space-y-2">
+          <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <span>Never-events</span>
+              <span className="rounded-full bg-white px-2 py-1 normal-case tracking-normal text-slate-600 ring-1 ring-slate-200">{analysis.executionProtocol.neverEvents.length} rules</span>
+            </summary>
+            <div className="space-y-2 border-t border-slate-200 px-4 py-3">
               {analysis.executionProtocol.neverEvents.map((item, index) => (
                 <div key={`never-event-${index}`} className={`rounded-xl px-3 py-2 text-sm ${item.triggered ? 'bg-red-100 text-red-700' : 'bg-white text-slate-700 ring-1 ring-slate-200'}`}>
                   {item.rule}
                 </div>
               ))}
             </div>
-          </div>
+          </details>
         </div>
 
         <div className={card}>
@@ -1698,12 +1708,7 @@ export default function CDSSInfectionRiskPrototype() {
             <div className="mt-2 text-sm font-semibold text-slate-900">Primary outcome: {analysis.studyReadiness.primaryOutcome}</div>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Validation targets</div>
-              <div className="mt-2 space-y-2">
-                {analysis.validationTargets.map((target, index) => <div key={`validation-target-${index}`} className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">{target}</div>)}
-              </div>
-            </div>
+            <ExpandableField title="Validation targets" items={analysis.validationTargets} badgeLabel={`${analysis.validationTargets.length} targets`} />
             <div>
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current case readiness</div>
               <div className="mt-2 space-y-2">
@@ -1717,11 +1722,14 @@ export default function CDSSInfectionRiskPrototype() {
               <div className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">{analysis.studyReadiness.ablationQuestion}</div>
             </div>
           </div>
-          <div className="mt-4">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Feature table</div>
-            <div className="mt-2 overflow-auto rounded-2xl border border-slate-200">
+          <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <span>Feature table</span>
+              <span className="rounded-full bg-white px-2 py-1 normal-case tracking-normal text-slate-600 ring-1 ring-slate-200">{analysis.featureTable.length} features</span>
+            </summary>
+            <div className="overflow-auto border-t border-slate-200">
               <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500">
+                <thead className="bg-white text-slate-500">
                   <tr>
                     <th className="px-3 py-2 font-semibold">Feature</th>
                     <th className="px-3 py-2 font-semibold">Source</th>
@@ -1743,12 +1751,18 @@ export default function CDSSInfectionRiskPrototype() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </details>
         </div>
 
         <div className={card}>
           <h2 className="mb-4 text-xl font-semibold">Final recommendation</h2>
-          <pre className="whitespace-pre-wrap rounded-2xl bg-slate-50 p-4 text-xs leading-6 text-slate-700">{JSON.stringify(analysis.finalRecommendationObject, null, 2)}</pre>
+          <details className="rounded-2xl border border-slate-200 bg-slate-50">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-800">
+              <span>Structured recommendation object</span>
+              <span className="rounded-full bg-white px-3 py-1 text-xs text-slate-600 ring-1 ring-slate-200">expand JSON</span>
+            </summary>
+            <pre className="whitespace-pre-wrap border-t border-slate-200 p-4 text-xs leading-6 text-slate-700">{JSON.stringify(analysis.finalRecommendationObject, null, 2)}</pre>
+          </details>
         </div>
       </div>
     </>
@@ -1820,40 +1834,25 @@ export default function CDSSInfectionRiskPrototype() {
     </>
   );
 
+  const allHealthChecks = [...SELF_TESTS, ...SCENARIO_SELF_TESTS, ...DAG_SCENARIO_SELF_TESTS];
+  const failedHealthChecks = allHealthChecks.filter((test) => !test.pass);
+
   return (
-    <div className="min-h-screen bg-slate-50 p-6 text-slate-900">
+    <div className="min-h-screen bg-slate-50 p-4 text-slate-900 md:p-6">
       <div className="mx-auto max-w-7xl space-y-6">
         <div className={card}>
-          <div className="flex flex-wrap gap-2">
-            {[...SELF_TESTS, ...SCENARIO_SELF_TESTS, ...DAG_SCENARIO_SELF_TESTS].map((test) => (
-              <div key={test.name} className={`rounded-full px-3 py-1 text-xs font-semibold ${test.pass ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {test.name}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className={card}>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { id: 'event', label: 'Event Management' },
-              { id: 'surveillance', label: 'Surveillance' },
-              { id: 'communication', label: 'Communication' },
-            ].map((tab) => (
-              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`rounded-2xl px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className={card}>
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Scenario-based MVP</div>
               <h1 className="text-3xl font-bold tracking-tight">Remote Infection-Event Triage CDSS</h1>
               <p className="mt-2 max-w-4xl text-sm text-slate-600">{analysis.mvpScope.claim} The CDSS returns bounded onboard actions, while the DAG panel explains upstream drivers, missing information, and uncertainty.</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${severityStyles[analysis.band]}`}>{analysis.band} triage</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{analysis.routedScenario.name}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Recheck {analysis.executionProtocol.reassessmentHours}h</span>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 lg:max-w-xl lg:justify-end">
               {Object.entries(PRESETS).map(([key, preset]) => {
                 const isSelected = state.label === preset.label;
                 const mappedScenario = preset.targetScenarioFamily ? SCENARIO_LIBRARY[preset.targetScenarioFamily]?.name : '';
@@ -1865,6 +1864,32 @@ export default function CDSSInfectionRiskPrototype() {
                 );
               })}
             </div>
+          </div>
+          <div className="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { id: 'event', label: 'Event Management' },
+                { id: 'surveillance', label: 'Surveillance' },
+                { id: 'communication', label: 'Communication' },
+              ].map((tab) => (
+                <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`rounded-2xl px-4 py-2 text-sm font-medium ${activeTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <details className="rounded-2xl border border-slate-200 bg-slate-50">
+              <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2 text-xs font-semibold text-slate-700">
+                <span>Build checks</span>
+                <span className={`rounded-full px-2 py-1 ${failedHealthChecks.length ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{failedHealthChecks.length ? `${failedHealthChecks.length} failing` : 'all passing'}</span>
+              </summary>
+              <div className="flex max-w-3xl flex-wrap gap-2 border-t border-slate-200 px-4 py-3">
+                {allHealthChecks.map((test) => (
+                  <div key={test.name} className={`rounded-full px-3 py-1 text-xs font-semibold ${test.pass ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {test.name}
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
         </div>
 
