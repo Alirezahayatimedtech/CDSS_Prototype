@@ -259,6 +259,47 @@ const missionPriorityStyles = {
   Immediate: 'bg-red-100 text-red-800',
 };
 
+const SCENARIO_LIBRARY = {
+  reactivation_watch: {
+    id: 'reactivation_watch',
+    name: 'Viral reactivation / immune dysregulation watch',
+    goal: 'Catch early reactivation-like patterns before full clinical decompensation.',
+    triggerSummary: 'Mild/mixed symptoms with immune baseline shift, reactivation history, and biomarker deviation.',
+    requiredInputs: ['Symptoms', 'Trend', 'Whole blood/PBMC/plasma features', 'Saliva viral signal', 'Exposure context'],
+    dags: ['Immune Risk', 'Microhost Risk', 'Medical Risk'],
+    confounders: ['Sleep debt and stress effects', 'Nonspecific inflammatory elevation'],
+  },
+  respiratory_syndrome: {
+    id: 'respiratory_syndrome',
+    name: 'Respiratory infectious syndrome',
+    goal: 'Support monitor vs isolate vs treat vs escalate for respiratory-like events.',
+    triggerSummary: 'Feverishness + respiratory burden + worsening trend + exposure concern.',
+    requiredInputs: ['Symptoms', 'Trend', 'Whole blood inflammation/interferon', 'Exposure context', 'Ops constraints'],
+    dags: ['Medical Risk', 'Microhost Risk', 'Immune Risk'],
+    confounders: ['Cabin irritant effects', 'Fatigue-only performance decline'],
+  },
+  delayed_support_event: {
+    id: 'delayed_support_event',
+    name: 'Delayed-ground-support medical event',
+    goal: 'Preserve safe decisions when ground support is delayed.',
+    triggerSummary: 'Clinically relevant concern with comm delay that limits real-time consultation.',
+    requiredInputs: ['Core symptoms', 'Trend', 'Biomarker severity', 'Comm delay', 'CMO and med-kit status'],
+    dags: ['Medical Risk', 'Immune Risk', 'Pharm Risk'],
+    confounders: ['Delay-driven anxiety', 'Incomplete handoff to ground'],
+  },
+  constrained_support_event: {
+    id: 'constrained_support_event',
+    name: 'Resource-constrained infection event',
+    goal: 'Deliver safest fallback actions with personnel/equipment constraints.',
+    triggerSummary: 'CMO unavailable, med-kit limited, or isolation unavailable during infection concern.',
+    requiredInputs: ['Core symptoms', 'Trend', 'Biomarker severity', 'CMO status', 'Med-kit and isolation status'],
+    dags: ['Medical Risk', 'Pharm Risk', 'Immune Risk'],
+    confounders: ['Operational constraints masking clinical severity', 'Inability to isolate despite exposure concern'],
+  },
+};
+
+const SCENARIO_IDS = Object.keys(SCENARIO_LIBRARY);
+
 function scoreBand(score) {
   if (score >= 50) return 'High';
   if (score >= 28) return 'Moderate';
@@ -562,13 +603,134 @@ export default function CDSSInfectionRiskPrototype() {
     if (agreementGap <= 12 && evidenceCount >= 5) confidence = 'High';
     else if (agreementGap >= 28 || evidenceCount <= 2) confidence = 'Low';
 
-    const band = scoreBand(integratedScore);
-    const missionPriority = missionPriorityForBand(band);
+    const modelBand = scoreBand(integratedScore);
     const syndrome = syndromeAgent.topPattern;
 
     const allDrivers = [...biomarkerAgent.topDrivers, ...contextAgent.topDrivers, ...exposureAgent.topDrivers, ...syndromeAgent.topDrivers]
       .sort((a, b) => b.points - a.points)
       .slice(0, 6);
+
+    const redFlags = [
+      state.trendWorsening && (state.feverishness >= 6 || state.respiratorySymptoms >= 6 || state.salivaViralSignal >= 7) ? 'Rapidly worsening trend with high symptom or viral burden' : null,
+      state.fatigue >= 7 && state.feverishness >= 6 ? 'High fatigue with feverishness' : null,
+      !state.cmoAvailable ? 'Crew Medical Officer unavailable' : null,
+      state.medKitStatus === 'Limited' ? 'Medical kit constrained' : null,
+      state.isolationCapability === 'Unavailable' ? 'Isolation capability unavailable' : null,
+    ].filter(Boolean);
+
+    const inputCoverage = [
+      {
+        label: 'Symptoms',
+        available: [state.feverishness, state.respiratorySymptoms, state.giSymptoms, state.rashOrDermatitis, state.fatigue].every((value) => Number.isFinite(value)),
+      },
+      {
+        label: 'Trend',
+        available: Number.isFinite(state.trendWorsening),
+      },
+      {
+        label: 'Biomarkers',
+        available: [state.wholeBloodInflammation, state.wholeBloodInterferon, state.pbmcImmuneShift, state.plasmaAcutePhase, state.plasmaMetabolicStress, state.salivaViralSignal].every((value) => Number.isFinite(value)),
+      },
+      {
+        label: 'Exposure context',
+        available: Number.isFinite(state.cabinExposureConcern) && Number.isFinite(state.closeContactExposure),
+      },
+      {
+        label: 'Operational constraints',
+        available: Number.isFinite(state.commDelayMinutes) && typeof state.medKitStatus === 'string' && typeof state.isolationCapability === 'string',
+      },
+    ];
+
+    const missingInputs = inputCoverage.filter((item) => !item.available).map((item) => item.label);
+    const guardrailEscalationTriggered = redFlags.length > 0 && modelBand === 'Low';
+    const band = guardrailEscalationTriggered ? 'Moderate' : modelBand;
+    const missionPriority = missionPriorityForBand(band);
+
+    const scenarioCandidates = [
+      {
+        id: 'reactivation_watch',
+        score:
+          (state.salivaViralSignal >= 6 ? 3 : 0) +
+          (state.priorViralReactivationHistory ? 2 : 0) +
+          (state.rashOrDermatitis >= 4 ? 2 : 0) +
+          (state.immuneBaselineShift ? 1 : 0) +
+          (state.pbmcImmuneShift >= 5 ? 1 : 0),
+      },
+      {
+        id: 'respiratory_syndrome',
+        score:
+          (state.respiratorySymptoms >= 4 ? 3 : 0) +
+          (state.feverishness >= 4 ? 2 : 0) +
+          (state.trendWorsening ? 2 : 0) +
+          (state.closeContactExposure ? 1 : 0) +
+          (state.wholeBloodInflammation >= 5 ? 1 : 0),
+      },
+      {
+        id: 'delayed_support_event',
+        score:
+          (state.commDelayMinutes >= 10 ? 4 : state.commDelayMinutes > 0 ? 2 : 0) +
+          (band === 'High' ? 2 : band === 'Moderate' ? 1 : 0) +
+          (state.mode === 'Medical Event' ? 1 : 0),
+      },
+      {
+        id: 'constrained_support_event',
+        score:
+          (!state.cmoAvailable ? 3 : 0) +
+          (state.medKitStatus === 'Limited' ? 2 : 0) +
+          (state.isolationCapability === 'Unavailable' ? 2 : 0) +
+          (band === 'High' ? 2 : band === 'Moderate' ? 1 : 0),
+      },
+    ];
+
+    const scenarioById = Object.fromEntries(scenarioCandidates.map((candidate) => [candidate.id, candidate]));
+    let routedScenarioId = 'respiratory_syndrome';
+
+    if (scenarioById.constrained_support_event.score >= 3) {
+      routedScenarioId = 'constrained_support_event';
+    } else if (scenarioById.delayed_support_event.score >= 4) {
+      routedScenarioId = 'delayed_support_event';
+    } else if (scenarioById.reactivation_watch.score >= scenarioById.respiratory_syndrome.score) {
+      routedScenarioId = 'reactivation_watch';
+    }
+
+    const routedScenario = SCENARIO_LIBRARY[routedScenarioId];
+    const scenarioMatrix = SCENARIO_IDS.map((id) => ({
+      ...SCENARIO_LIBRARY[id],
+      score: scenarioById[id]?.score ?? 0,
+      active: id === routedScenarioId,
+    }));
+
+    const alternativeExplanations = [
+      state.sleepQuality <= 4 && state.stressLoad >= 6 ? 'Sleep and stress burden may amplify symptoms without a dominant infectious driver.' : null,
+      state.cabinExposureConcern >= 4 && !state.closeContactExposure ? 'Environmental cabin factors may contribute to respiratory burden.' : null,
+      state.plasmaMetabolicStress >= 6 && state.feverishness < 4 ? 'Metabolic stress could partially explain fatigue trend.' : null,
+    ].filter(Boolean);
+
+    if (!alternativeExplanations.length) {
+      alternativeExplanations.push('No strong alternative explanation currently dominates the infectious interpretation.');
+    }
+
+    const uncertaintyReducers = [
+      agreementGap >= 20 ? 'Repeat symptom and biomarker check to reconcile context-biomarker disagreement.' : null,
+      confidence === 'Low' ? 'Increase reassessment cadence and request secondary reviewer confirmation.' : null,
+      state.salivaViralSignal >= 4 && state.priorViralReactivationHistory ? 'Repeat saliva signal and targeted dermatologic review for reactivation confirmation.' : null,
+      state.respiratorySymptoms >= 5 ? 'Reassess respiratory burden trajectory and exposure chain in the next check.' : null,
+      state.commDelayMinutes >= 10 ? 'Prepare richer downlink packet early to reduce delay-related uncertainty.' : null,
+    ].filter(Boolean);
+
+    if (!uncertaintyReducers.length) {
+      uncertaintyReducers.push('Current evidence coherence is acceptable; continue routine surveillance cadence.');
+    }
+
+    const strongestDrivers = allDrivers.slice(0, 4).map((driver) => `${driver.label} (+${driver.points})`);
+    const dagEvidenceMap = {
+      scenario: routedScenario.name,
+      dagModels: routedScenario.dags,
+      strongestDrivers,
+      alternativeExplanations,
+      uncertaintyReducers,
+      confounders: routedScenario.confounders,
+    };
 
     const confirmatoryActions =
       band === 'Low'
@@ -576,6 +738,55 @@ export default function CDSSInfectionRiskPrototype() {
         : band === 'Moderate'
           ? ['Repeat symptom review within 12–24 hours.', 'Repeat available biomarker collection or simplified reassessment.', 'Review recent exposure chain and environmental hygiene status.']
           : ['Repeat confirmatory assessment as soon as feasible.', 'Review whether crew member should limit discretionary close contact.', 'Package case summary for expedited medical downlink.'];
+
+    const reassessmentHours = redFlags.length > 0 || band === 'High' ? 4 : band === 'Moderate' ? 12 : 24;
+    const boundedProtocolActions = [];
+    if (missingInputs.length > 0) {
+      boundedProtocolActions.push('Collect required inputs before treatment recommendation.');
+    }
+    if (band === 'Low' && redFlags.length === 0) {
+      boundedProtocolActions.push('Continue routine monitoring.');
+    }
+    boundedProtocolActions.push(`Repeat check in ${reassessmentHours} hours.`);
+    if (band !== 'Low' || state.closeContactExposure || state.cabinExposureConcern >= 3) {
+      boundedProtocolActions.push('Isolate / infection-control precautions.');
+    }
+    if (band === 'Moderate' || band === 'High') {
+      boundedProtocolActions.push('Start predefined countermeasure bundle.');
+    }
+    if (band === 'High' || state.trendWorsening || !state.cmoAvailable) {
+      boundedProtocolActions.push('Escalate to CMO.');
+    }
+    if (band === 'High' || state.commDelayMinutes >= 10 || !state.cmoAvailable || state.medKitStatus === 'Limited') {
+      boundedProtocolActions.push('Escalate to ground urgently.');
+    }
+
+    const protocolActions = [...new Set(boundedProtocolActions)].slice(0, 6);
+    const neverEvents = [
+      {
+        rule: 'No treatment recommendation if required inputs are missing.',
+        triggered: missingInputs.length > 0,
+      },
+      {
+        rule: 'No low-risk reassurance when red flags are present.',
+        triggered: guardrailEscalationTriggered,
+      },
+      {
+        rule: 'No reassurance when context and biomarker evidence are inconsistent.',
+        triggered: agreementGap >= 28,
+      },
+    ];
+
+    const neverEventViolations = neverEvents.filter((item) => item.triggered).map((item) => item.rule);
+    const executionProtocol = {
+      scenario: routedScenario.name,
+      immediateAction: protocolActions[0] || confirmatoryActions[0] || 'Continue routine monitoring.',
+      actions: protocolActions,
+      reassessmentHours,
+      redFlags,
+      missingInputs,
+      neverEvents,
+    };
 
     const countermeasures =
       band === 'Low'
@@ -597,26 +808,27 @@ export default function CDSSInfectionRiskPrototype() {
       { day: state.missionDay, label: 'Current assessment', score: integratedScore },
     ];
 
-    const conopsScenarios = [
-      { title: 'Routine surveillance', active: state.mode === 'Routine Surveillance', detail: 'Scheduled health review with low decision burden.' },
-      { title: 'Trend flag / watch list', active: state.mode === 'Watch List' || !!state.trendWorsening, detail: 'Serial checks identify deviation from baseline and trigger closer review.' },
-      { title: 'Medical event workup', active: state.mode === 'Medical Event', detail: 'Escalation from monitoring into event-focused assessment and management.' },
-      { title: 'Delayed ground support', active: state.commDelayMinutes > 0, detail: 'Onboard guidance carries more decision weight when downlink is delayed.' },
-      { title: 'Constrained support', active: !state.cmoAvailable || state.medKitStatus === 'Limited' || state.isolationCapability === 'Unavailable', detail: 'Recommendations adapt to personnel, resource, and vehicle constraints.' },
-    ];
+    const conopsScenarios = scenarioMatrix.map((scenario) => ({
+      title: scenario.name,
+      active: scenario.active,
+      detail: scenario.triggerSummary,
+    }));
 
     const modularBlocks = [
       'Input adapters: Inspiration4-style processed blood, PBMC, plasma, saliva, symptom logs, and operations context.',
       'Evidence agents: biomarker, context, exposure, syndrome, and operations.',
+      `Reasoning layer: scenario router + DAG evidence map (${routedScenario.dags.join(', ')}).`,
+      'Execution layer: bounded protocol actions with explicit guardrails and escalation rules.',
       'Orchestrator: weighted fusion, confidence, and mission-priority assignment.',
-      'Action layer: confirmatory actions, countermeasures, JIT training, and downlink summary.',
     ];
 
     const conopsFlow = [
       { step: 'Detect', status: 'complete', detail: 'Integrated system ingested current crew state and derived multimodal signals.' },
       { step: 'Characterize', status: 'complete', detail: `${syndrome} based on biomarker + symptom/context fusion.` },
+      { step: 'Route scenario', status: 'complete', detail: `Scenario router selected: ${routedScenario.name}.` },
+      { step: 'Reason', status: 'complete', detail: `DAG evidence map highlighted ${dagEvidenceMap.strongestDrivers[0] || 'no dominant driver'}.` },
       { step: 'Triage', status: 'complete', detail: `${band} risk with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.` },
-      { step: 'Recommend', status: 'complete', detail: countermeasures[0] },
+      { step: 'Recommend', status: 'complete', detail: executionProtocol.immediateAction },
       { step: 'Execute', status: band === 'High' ? 'action' : band === 'Moderate' ? 'watch' : 'routine', detail: confirmatoryActions[0] },
       { step: 'Communicate', status: state.commDelayMinutes > 0 || band === 'High' ? 'action' : 'routine', detail: state.commDelayMinutes > 0 ? `Ground support delayed by ~${state.commDelayMinutes} min.` : 'Downlink optional unless trend worsens.' },
     ];
@@ -638,24 +850,34 @@ export default function CDSSInfectionRiskPrototype() {
       inputsReceived: agentHandoffs.map((a) => ({ agent: a.agent, score: a.score, confidence: a.confidence })),
       mergedAssessment: syndrome,
       riskBand: band,
+      modelRiskBand: modelBand,
       integratedScore,
       confidence,
       missionPriority,
       decisionSummary: `Integrated ${band.toLowerCase()} infectious-risk assessment with ${confidence.toLowerCase()} confidence and ${missionPriority.toLowerCase()} mission priority.`,
-      nextAction: confirmatoryActions[0],
+      nextAction: executionProtocol.immediateAction,
       countermeasureLead: countermeasures[0],
+      routedScenario: routedScenario.name,
+      neverEventViolations,
     };
 
     const finalRecommendationObject = {
       recipient: 'Crew Medical Officer',
       scenario: state.scenarioType || state.mode,
+      routedScenario: routedScenario.name,
+      routedScenarioGoal: routedScenario.goal,
+      dagModels: routedScenario.dags,
       crewId: state.crewId,
       missionDay: state.missionDay,
       probablePattern: syndrome,
       riskBand: band,
+      modelRiskBand: modelBand,
       confidence,
       missionPriority,
-      immediateActions: confirmatoryActions,
+      immediateActions: executionProtocol.actions,
+      reassessmentHours: executionProtocol.reassessmentHours,
+      redFlags,
+      neverEventViolations,
       countermeasures,
       jitTraining,
       communicationPlan: state.commDelayMinutes > 0 ? `Prepare onboard execution first; expected ground delay ~${state.commDelayMinutes} min.` : 'Ground consultation available if escalation is needed.',
@@ -665,7 +887,10 @@ export default function CDSSInfectionRiskPrototype() {
       `Crew ID: ${state.crewId}`,
       `Mission day: ${state.missionDay}`,
       `Mode: ${state.mode}`,
+      `Routed scenario: ${routedScenario.name}`,
+      `DAG models: ${routedScenario.dags.join(', ')}`,
       `Risk band: ${band}`,
+      `Model risk band (pre-guardrail): ${modelBand}`,
       `Integrated score: ${integratedScore}/100`,
       `Confidence: ${confidence}`,
       `Probable syndrome: ${syndrome}`,
@@ -674,18 +899,31 @@ export default function CDSSInfectionRiskPrototype() {
       `Biomarker agent: ${biomarkerAgent.summary}`,
       `Context agent: ${contextAgent.summary}`,
       `Operations agent: ${operationsAgent.summary}`,
-      `Immediate action: ${confirmatoryActions[0]}`,
+      `Immediate action: ${executionProtocol.immediateAction}`,
       `Primary countermeasure: ${countermeasures[0]}`,
+      `Red flags: ${redFlags.length ? redFlags.join('; ') : 'none'}`,
+      `Never-event violations: ${neverEventViolations.length ? neverEventViolations.join('; ') : 'none'}`,
     ].join('\n');
 
     return {
       integratedScore,
       band,
+      modelBand,
       confidence,
       syndrome,
       missionPriority,
       allDrivers,
       confirmatoryActions,
+      protocolActions,
+      executionProtocol,
+      redFlags,
+      inputCoverage,
+      missingInputs,
+      neverEvents,
+      neverEventViolations,
+      routedScenario,
+      scenarioMatrix,
+      dagEvidenceMap,
       countermeasures,
       jitTraining,
       timeline,
@@ -957,6 +1195,47 @@ export default function CDSSInfectionRiskPrototype() {
               <div className="text-sm font-semibold text-slate-900">Mission priority</div>
               <div className="mt-2 text-lg font-medium text-slate-800">{analysis.missionPriority}</div>
             </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Routed scenario family</div>
+              <div className="mt-2 text-base font-medium text-slate-800">{analysis.routedScenario.name}</div>
+              <div className="mt-2 text-sm text-slate-600">{analysis.routedScenario.goal}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-sm font-semibold text-slate-900">Risk guardrail check</div>
+              <div className="mt-2 text-base font-medium text-slate-800">Model: {analysis.modelBand} | Guardrailed: {analysis.band}</div>
+              <div className="mt-2 text-sm text-slate-600">{analysis.neverEventViolations.length ? 'Guardrail override active for safety.' : 'No guardrail override triggered.'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Scenario router and DAG reasoning layer</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-3">
+              {analysis.scenarioMatrix.map((scenario) => (
+                <div key={`scenario-router-${scenario.id}`} className={`rounded-2xl border p-4 ${scenario.active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-slate-50 text-slate-700'}`}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm font-semibold">{scenario.name}</div>
+                    <div className={`rounded-full px-2 py-1 text-xs font-semibold ${scenario.active ? 'bg-slate-100 text-slate-900' : 'bg-slate-200 text-slate-700'}`}>score {scenario.score}</div>
+                  </div>
+                  <div className={`mt-2 text-sm ${scenario.active ? 'text-slate-200' : 'text-slate-600'}`}>{scenario.triggerSummary}</div>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-3">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">DAGs used</div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {analysis.dagEvidenceMap.dagModels.map((dag) => <span key={`dag-${dag}`} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">{dag}</span>)}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Strongest causal drivers</div>
+                <ul className="mt-2 space-y-2 text-sm text-slate-700">
+                  {analysis.dagEvidenceMap.strongestDrivers.map((item, index) => <li key={`driver-${index}`} className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">{item}</li>)}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1015,14 +1294,49 @@ export default function CDSSInfectionRiskPrototype() {
         </div>
 
         <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Scenario branch guidance</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {analysis.conopsScenarios.map((scenario, index) => (
-              <div key={`${scenario.title}-branch-${index}`} className={`rounded-2xl p-4 ${scenario.active ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-700'}`}>
-                <div className="text-sm font-semibold">{scenario.title}</div>
-                <div className={`mt-2 text-sm ${scenario.active ? 'text-slate-200' : 'text-slate-600'}`}>{scenario.detail}</div>
+          <h2 className="mb-4 text-xl font-semibold">Protocol actions and guardrails</h2>
+          <div className="space-y-3">
+            {analysis.executionProtocol.actions.map((action, index) => (
+              <div key={`protocol-action-${index}`} className="rounded-2xl bg-slate-50 p-4">
+                <div className="text-sm font-semibold text-slate-900">{action}</div>
               </div>
             ))}
+          </div>
+          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Red flags</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {analysis.executionProtocol.redFlags.length
+                ? analysis.executionProtocol.redFlags.map((flag, index) => <span key={`red-flag-${index}`} className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">{flag}</span>)
+                : <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">No active red flags</span>}
+            </div>
+          </div>
+          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Never-events</div>
+            <div className="mt-2 space-y-2">
+              {analysis.executionProtocol.neverEvents.map((item, index) => (
+                <div key={`never-event-${index}`} className={`rounded-xl px-3 py-2 text-sm ${item.triggered ? 'bg-red-100 text-red-700' : 'bg-white text-slate-700 ring-1 ring-slate-200'}`}>
+                  {item.rule}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className={card}>
+          <h2 className="mb-4 text-xl font-semibold">Causal uncertainty map</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Alternative explanations</div>
+              <ul className="mt-2 space-y-2 text-sm text-slate-700">
+                {analysis.dagEvidenceMap.alternativeExplanations.map((item, index) => <li key={`alt-${index}`} className="rounded-xl bg-slate-50 px-3 py-2">{item}</li>)}
+              </ul>
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Uncertainty reducers</div>
+              <ul className="mt-2 space-y-2 text-sm text-slate-700">
+                {analysis.dagEvidenceMap.uncertaintyReducers.map((item, index) => <li key={`uncertainty-${index}`} className="rounded-xl bg-slate-50 px-3 py-2">{item}</li>)}
+              </ul>
+            </div>
           </div>
         </div>
 
