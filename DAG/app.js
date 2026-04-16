@@ -67,6 +67,14 @@ function getRequestedRiskToken() {
   return normalizeRiskToken(params.get("risk") || "");
 }
 
+function getRequestedNodeToken() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  const params = new URLSearchParams(window.location.search);
+  return normalizeRiskToken(params.get("node") || "");
+}
+
 function syncRiskParamWithCurrentGraph() {
   if (typeof window === "undefined" || !currentGraph?.title) {
     return;
@@ -79,6 +87,46 @@ function syncRiskParamWithCurrentGraph() {
 
   url.searchParams.set("risk", currentGraph.title);
   window.history.replaceState({}, "", url);
+}
+
+function syncNodeParamWithSelection() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  const currentNodeParam = url.searchParams.get("node");
+  if (!selectedNodeId) {
+    if (currentNodeParam) {
+      url.searchParams.delete("node");
+      window.history.replaceState({}, "", url);
+    }
+    return;
+  }
+
+  if (currentNodeParam === selectedNodeId) {
+    return;
+  }
+
+  url.searchParams.set("node", selectedNodeId);
+  window.history.replaceState({}, "", url);
+}
+
+function findNodeByRequestedToken(graph, token) {
+  if (!graph || !token) {
+    return null;
+  }
+
+  const exact = graph.nodes.find((node) => normalizeRiskToken(node.id) === token);
+  if (exact) {
+    return exact.id;
+  }
+
+  const partial = graph.nodes.find((node) => {
+    const normalized = normalizeRiskToken(node.id);
+    return normalized.includes(token) || token.includes(normalized);
+  });
+  return partial ? partial.id : null;
 }
 
 function listMarkup(items) {
@@ -832,6 +880,7 @@ function renderGraph() {
     ? currentGraph.validation.warnings.join(" | ")
     : "Validation clean: no missing references or duplicate edges detected.";
   syncRiskParamWithCurrentGraph();
+  syncNodeParamWithSelection();
 
   nodeCount.textContent = String(currentGraph.validation.nodeCount);
   edgeCount.textContent = String(currentGraph.validation.edgeCount);
@@ -880,6 +929,7 @@ function bindGraphEvents(nodeMap) {
     selectedNodeId = nodeId;
     applyFilters(nodeMap);
     updateInspector();
+    syncNodeParamWithSelection();
   };
 
   for (const element of graphCanvas.querySelectorAll("[data-node]")) {
@@ -959,6 +1009,7 @@ function start(catalogData) {
   catalog = catalogData;
   graphCountPill.textContent = `${catalog.graphCount} graphs`;
   const requestedRiskToken = getRequestedRiskToken();
+  const requestedNodeToken = getRequestedNodeToken();
   currentGraph =
     catalog.graphs.find(
       (graph) =>
@@ -967,6 +1018,24 @@ function start(catalogData) {
     ) ||
     catalog.graphs.find((graph) => graph.title === "SANS Risk") ||
     catalog.graphs[0];
+
+  currentNodeSearch = "";
+  selectedNodeId = null;
+  if (nodeSearch) {
+    nodeSearch.value = "";
+  }
+
+  if (requestedNodeToken) {
+    const matchedNodeId = findNodeByRequestedToken(currentGraph, requestedNodeToken);
+    if (matchedNodeId) {
+      selectedNodeId = matchedNodeId;
+      currentNodeSearch = matchedNodeId.toLowerCase();
+      if (nodeSearch) {
+        nodeSearch.value = matchedNodeId;
+      }
+    }
+  }
+
   renderRiskList();
   renderGraph();
   updateInspector();
@@ -996,6 +1065,7 @@ if (doc) {
     selectedNodeId = null;
     applyFilters(graphNodeMap(currentGraph));
     updateInspector();
+    syncNodeParamWithSelection();
   });
 
   zoomOut.addEventListener("click", () => {

@@ -300,6 +300,94 @@ const SCENARIO_LIBRARY = {
 
 const SCENARIO_IDS = Object.keys(SCENARIO_LIBRARY);
 
+const SCENARIO_NODE_TARGETS = {
+  reactivation_watch: {
+    'Immune Risk': [
+      'Clinically Significant Immune Dysregulation',
+      'Persistent Subclinical Immune Dysregulation',
+      'Medical Illness',
+      'Microbial Virulence Factors',
+      'Pharm (Risk)',
+    ],
+    'Microhost Risk': [
+      'Immune (Risk)',
+      'Microbial Virulence Factors',
+      'Medical Treatment Capability',
+      'Intervention Source Control',
+    ],
+    'Medical Risk': [
+      'Medical Illness',
+      'Medical Diagnostic Capability',
+      'Medical Treatment Capability',
+      'Detect Physiologic Changes',
+    ],
+  },
+  respiratory_syndrome: {
+    'Medical Risk': [
+      'Medical Illness',
+      'Environmental Conditions',
+      'Detect Diagnosis',
+      'Medical Diagnostic Capability',
+      'Ground Support',
+    ],
+    'Microhost Risk': [
+      'Air Contamination',
+      'Surface Contamination',
+      'Microbial Virulence Factors',
+      'Immune (Risk)',
+      'Intervention Source Control',
+    ],
+    'Immune Risk': [
+      'Medical Illness',
+      'Clinically Significant Immune Dysregulation',
+      'Hypoxia, CO2 (Risks)',
+      'Isolation and Confinement',
+    ],
+  },
+  delayed_support_event: {
+    'Medical Risk': [
+      'Distance from Earth',
+      'Communication Factors',
+      'Ground Support',
+      'Data Accessibility',
+      'On-Board Expertise',
+    ],
+    'Immune Risk': [
+      'Distance from Earth',
+      'Crew Capability',
+      'Medical Treatment Capability',
+      'Medical Prevention Capability',
+    ],
+    'Pharm Risk': [
+      'Distance from Earth',
+      'Medical Treatment Capability',
+      'Medical Diagnostic Capability',
+      'Pharmaceutical Effectiveness',
+    ],
+  },
+  constrained_support_event: {
+    'Medical Risk': [
+      'Crew Capability',
+      'Medical Treatment Capability',
+      'Medical Prevention Capability',
+      'On-Board Expertise',
+      'Loss of Mission Objectives',
+    ],
+    'Pharm Risk': [
+      'Medical Treatment Capability',
+      'Medical Prevention Capability',
+      'Pharmaceutical Effectiveness',
+      'Medication Compatibility',
+    ],
+    'Immune Risk': [
+      'Crew Capability',
+      'Medical Treatment Capability',
+      'Medical Prevention Capability',
+      'Loss of Mission Objectives',
+    ],
+  },
+};
+
 function scoreBand(score) {
   if (score >= 50) return 'High';
   if (score >= 28) return 'Moderate';
@@ -318,6 +406,7 @@ export default function CDSSInfectionRiskPrototype() {
   const [expandedAgents, setExpandedAgents] = useState({});
   const [copyFeedback, setCopyFeedback] = useState('idle');
   const [dagFocus, setDagFocus] = useState('Immune Risk');
+  const [dagNodeFocus, setDagNodeFocus] = useState('');
 
   const toggleAgent = (name) => {
     setExpandedAgents((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -733,6 +822,11 @@ export default function CDSSInfectionRiskPrototype() {
       confounders: routedScenario.confounders,
     };
 
+    const rawDagNodeTargets = SCENARIO_NODE_TARGETS[routedScenarioId] || {};
+    const dagNodeTargetsByGraph = Object.fromEntries(
+      routedScenario.dags.map((dagName) => [dagName, rawDagNodeTargets[dagName] || []])
+    );
+
     const confirmatoryActions =
       band === 'Low'
         ? ['Continue routine surveillance cadence.', 'Recheck crew-entered symptoms at next scheduled medical review.']
@@ -925,6 +1019,7 @@ export default function CDSSInfectionRiskPrototype() {
       routedScenario,
       scenarioMatrix,
       dagEvidenceMap,
+      dagNodeTargetsByGraph,
       countermeasures,
       jitTraining,
       timeline,
@@ -947,6 +1042,10 @@ export default function CDSSInfectionRiskPrototype() {
   const activeDagFocus = analysis.dagEvidenceMap.dagModels.includes(dagFocus)
     ? dagFocus
     : analysis.dagEvidenceMap.dagModels[0] || 'Immune Risk';
+  const availableDagNodes = analysis.dagNodeTargetsByGraph[activeDagFocus] || [];
+  const activeDagNodeFocus = availableDagNodes.includes(dagNodeFocus)
+    ? dagNodeFocus
+    : availableDagNodes[0] || '';
 
   const dagCatalogRoute = useMemo(() => {
     if (!appBaseUrl) return '';
@@ -954,8 +1053,11 @@ export default function CDSSInfectionRiskPrototype() {
     if (activeDagFocus) {
       url.searchParams.set('risk', activeDagFocus);
     }
+    if (activeDagNodeFocus) {
+      url.searchParams.set('node', activeDagNodeFocus);
+    }
     return url.toString();
-  }, [appBaseUrl, activeDagFocus]);
+  }, [appBaseUrl, activeDagFocus, activeDagNodeFocus]);
 
   const handleCopySummary = async () => {
     if (!navigator?.clipboard?.writeText) {
@@ -1263,7 +1365,14 @@ export default function CDSSInfectionRiskPrototype() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <label className="block space-y-1 md:w-[340px]">
               <span className="text-sm font-medium text-slate-700">DAG focus</span>
-              <select className={inputClass} value={activeDagFocus} onChange={(e) => setDagFocus(e.target.value)}>
+              <select
+                className={inputClass}
+                value={activeDagFocus}
+                onChange={(e) => {
+                  setDagFocus(e.target.value);
+                  setDagNodeFocus('');
+                }}
+              >
                 {analysis.dagEvidenceMap.dagModels.map((dag) => (
                   <option key={`dag-focus-${dag}`} value={dag}>
                     {dag}
@@ -1275,9 +1384,32 @@ export default function CDSSInfectionRiskPrototype() {
               Open DAG route
             </a>
           </div>
+          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Node targets in {activeDagFocus}</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {availableDagNodes.length ? (
+                availableDagNodes.map((nodeName) => (
+                  <button
+                    key={`dag-node-target-${nodeName}`}
+                    type="button"
+                    onClick={() => setDagNodeFocus(nodeName)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      activeDagNodeFocus === nodeName
+                        ? 'bg-slate-900 text-white'
+                        : 'bg-white text-slate-700 ring-1 ring-slate-200'
+                    }`}
+                  >
+                    {nodeName}
+                  </button>
+                ))
+              ) : (
+                <span className="rounded-full bg-white px-3 py-1 text-xs text-slate-500 ring-1 ring-slate-200">No node targets configured</span>
+              )}
+            </div>
+          </div>
           <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
             <iframe
-              title={`Linked DAG: ${activeDagFocus}`}
+              title={`Linked DAG: ${activeDagFocus}${activeDagNodeFocus ? ` -> ${activeDagNodeFocus}` : ''}`}
               src={dagCatalogRoute}
               className="h-[560px] w-full border-0"
             />
