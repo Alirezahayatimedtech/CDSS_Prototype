@@ -532,6 +532,113 @@ function missionPriorityForBand(band) {
   return 'Monitor';
 }
 
+const CREW_SCENARIO_LABELS = {
+  reactivation_watch: 'Viral-signal watch',
+  respiratory_syndrome: 'Breathing-symptom watch',
+  delayed_support_event: 'Ground help delayed',
+  constrained_support_event: 'Limited medical resources',
+};
+
+const CREW_STATUS_LABELS = {
+  Low: 'Routine watch',
+  Moderate: 'Watch closely',
+  High: 'Act now',
+};
+
+const CREW_INPUT_LABELS = {
+  Symptoms: 'symptoms',
+  Trend: 'whether symptoms are changing',
+  'PBMC/whole-blood/plasma features': 'available blood/sample checks',
+  'Saliva viral signal': 'available saliva check',
+  'Exposure context': 'recent close contact or cabin exposure',
+  'Whole-blood inflammation/interferon': 'available blood/sample checks',
+  'Ops constraints': 'CMO, med-kit, isolation, and communication status',
+  'Core symptoms': 'core symptoms',
+  'Biomarker severity': 'available sample severity checks',
+  'Comm delay': 'ground communication delay',
+  'CMO and med-kit status': 'CMO and med-kit status',
+  'CMO status': 'CMO availability',
+  'Med-kit and isolation status': 'med-kit and isolation status',
+  Biomarkers: 'available sample checks',
+  'Operational constraints': 'CMO, med-kit, isolation, and communication status',
+};
+
+function stripFinalPeriod(value) {
+  return String(value || '').trim().replace(/\.$/, '');
+}
+
+function crewScenarioName(scenario) {
+  return CREW_SCENARIO_LABELS[scenario?.id] || scenario?.name || 'Crew health watch';
+}
+
+function crewActionLabel(action) {
+  const clean = stripFinalPeriod(action);
+  if (clean.startsWith('Repeat check in')) return clean;
+  const labels = {
+    'Collect required inputs before starting a predefined support bundle': 'Collect the missing information first',
+    'Continue routine monitoring': 'Continue routine monitoring',
+    'Isolate / infection-control precautions': 'Limit close contact and use precautions',
+    'Start predefined countermeasure bundle': 'Start the approved onboard support bundle',
+    'Escalate to CMO': 'Contact the Crew Medical Officer',
+    'Escalate to ground urgently': 'Send urgent medical downlink',
+  };
+  return labels[clean] || clean;
+}
+
+function crewInputLabel(input) {
+  return CREW_INPUT_LABELS[input] || String(input || '').toLowerCase();
+}
+
+function crewDriverLabel(label) {
+  const clean = stripFinalPeriod(label).replace(/\s\(\+\d+\)$/, '');
+  const lower = clean.toLowerCase();
+  if (lower.includes('whole blood inflammatory')) return 'Blood inflammation signal is elevated';
+  if (lower.includes('interferon') || lower.includes('antiviral')) return 'Antiviral blood signal is elevated';
+  if (lower.includes('pbmc')) return 'Immune-cell signal has changed';
+  if (lower.includes('acute-phase')) return 'Inflammation-related blood signal is elevated';
+  if (lower.includes('metabolic stress')) return 'Stress-related sample signal is elevated';
+  if (lower.includes('saliva viral')) return 'Viral signal is elevated';
+  if (lower.includes('personal baseline')) return 'This differs from personal baseline';
+  if (lower.includes('feverishness')) return 'Crew member feels feverish';
+  if (lower.includes('respiratory')) return 'Breathing symptoms are higher';
+  if (lower.includes('gi symptom')) return 'Stomach or gut symptoms are present';
+  if (lower.includes('dermatitis') || lower.includes('rash')) return 'Skin symptoms are present';
+  if (lower.includes('fatigue')) return 'Fatigue is high';
+  if (lower.includes('sleep')) return 'Sleep is reduced';
+  if (lower.includes('stress')) return 'Stress load is high';
+  if (lower.includes('close-contact')) return 'Recent close contact was reported';
+  if (lower.includes('worsening')) return 'Symptoms are getting worse';
+  if (lower.includes('prior immune')) return 'A similar prior episode happened this mission';
+  if (lower.includes('viral reactivation history')) return 'Prior viral-signal history is present';
+  if (lower.includes('cabin exposure')) return 'Cabin exposure concern is elevated';
+  if (lower.includes('possible viral reactivation')) return 'Pattern matches viral-signal watch';
+  if (lower.includes('possible respiratory')) return 'Pattern matches breathing-symptom watch';
+  if (lower.includes('immune dysregulation')) return 'Immune watch pattern is present';
+  if (lower.includes('no strong syndrome')) return 'No strong pattern is present';
+  return clean;
+}
+
+function crewRedFlagLabel(flag) {
+  const lower = String(flag || '').toLowerCase();
+  if (lower.includes('rapidly worsening')) return 'Symptoms or viral signal are worsening quickly';
+  if (lower.includes('fatigue') && lower.includes('fever')) return 'High fatigue and feverish feeling are happening together';
+  if (lower.includes('crew medical officer')) return 'Crew Medical Officer is not available';
+  if (lower.includes('medical kit')) return 'Medical kit is limited';
+  if (lower.includes('isolation')) return 'Isolation space is not available';
+  return flag;
+}
+
+function crewUncertaintyLabel(text) {
+  const lower = String(text || '').toLowerCase();
+  if (lower.includes('context-biomarker')) return 'Repeat symptom and available sample checks';
+  if (lower.includes('secondary reviewer')) return 'Ask another reviewer if possible';
+  if (lower.includes('saliva')) return 'Repeat saliva check and skin symptom check';
+  if (lower.includes('respiratory')) return 'Recheck breathing symptoms and recent contacts';
+  if (lower.includes('downlink')) return 'Prepare a complete ground message early';
+  if (lower.includes('routine surveillance')) return 'Keep routine watch unless symptoms change';
+  return text;
+}
+
 export default function CDSSInfectionRiskPrototype() {
   const [state, setState] = useState(PRESETS.i4_watch);
   const [activeTab, setActiveTab] = useState('event');
@@ -973,6 +1080,48 @@ export default function CDSSInfectionRiskPrototype() {
       neverEvents,
     };
 
+    const crewActionSteps = protocolActions.map((action) => crewActionLabel(action));
+    const notificationTarget = crewActionSteps.some((action) => action.includes('urgent medical downlink'))
+      ? state.cmoAvailable
+        ? 'Contact the Crew Medical Officer and send urgent medical downlink'
+        : 'Send urgent medical downlink now'
+      : crewActionSteps.some((action) => action.includes('Crew Medical Officer'))
+        ? 'Contact the Crew Medical Officer'
+        : 'No urgent notification unless symptoms worsen';
+    const collectionTargets = (missingInputs.length ? missingInputs : routedScenario.minimumRequiredInputs)
+      .map((item) => crewInputLabel(item));
+    const crewBrief = {
+      scenarioName: crewScenarioName(routedScenario),
+      statusLevel: CREW_STATUS_LABELS[band] || `${band} watch`,
+      immediateAction: crewActionLabel(executionProtocol.immediateAction),
+      reassessmentText: `Repeat check in ${executionProtocol.reassessmentHours} hours`,
+      notificationTarget,
+      collectText: collectionTargets.join(', '),
+      cautionText: redFlags.length
+        ? `Do not ignore: ${redFlags.slice(0, 2).map((flag) => crewRedFlagLabel(flag)).join('; ')}.`
+        : 'Do not ignore worsening symptoms before the next check.',
+    };
+    const crewWhy = {
+      drivers: allDrivers.slice(0, 3).map((driver) => crewDriverLabel(driver.label)),
+      redFlags: redFlags.map((flag) => crewRedFlagLabel(flag)),
+      missingInfo: missingInputs.map((item) => crewInputLabel(item)),
+      uncertaintyReducers: uncertaintyReducers.slice(0, 3).map((item) => crewUncertaintyLabel(item)),
+    };
+    const medicalBrief = {
+      routedScenario: routedScenario.name,
+      syndromeSupportLabel: syndrome,
+      triageBand: band,
+      internalModelBand: modelBand,
+      internalFusionScore: integratedScore,
+      confidence,
+      missionPriority,
+      dagModels: routedScenario.dags,
+      dagNodeTargetsByGraph,
+      redFlags,
+      neverEventViolations,
+      guardrails: neverEvents,
+    };
+
     const studyReadiness = {
       mvpClaim: MVP_SCOPE.claim,
       caseSetTarget: '20-30 synthetic or expert-authored cases before manuscript submission.',
@@ -1112,6 +1261,10 @@ export default function CDSSInfectionRiskPrototype() {
       confidence,
       syndrome,
       missionPriority,
+      crewBrief,
+      crewActionSteps,
+      crewWhy,
+      medicalBrief,
       allDrivers,
       confirmatoryActions,
       protocolActions,
@@ -1438,51 +1591,84 @@ export default function CDSSInfectionRiskPrototype() {
         <div className={card}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">MVP decision card</div>
-              <h2 className="mt-1 text-2xl font-semibold">Remote infection-event triage</h2>
-              <p className="mt-2 max-w-3xl text-sm text-slate-600">{analysis.mvpScope.primaryQuestion}</p>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Crew instructions</div>
+              <h2 className="mt-1 text-2xl font-semibold">What to do now</h2>
+              <p className="mt-2 max-w-3xl text-sm text-slate-600">Follow these steps first. Medical and evidence details are available for the CMO below.</p>
             </div>
-            <div className={`rounded-2xl border px-3 py-1 text-sm font-semibold ${severityStyles[analysis.band]}`}>{analysis.band} triage</div>
+            <div className={`rounded-2xl border px-3 py-1 text-sm font-semibold ${severityStyles[analysis.band]}`}>{analysis.crewBrief.statusLevel}</div>
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Routed scenario</div>
-              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.routedScenario.name}</div>
-              <div className="mt-2 text-sm text-slate-600">{analysis.routedScenario.goal}</div>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Syndrome support label</div>
-              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.syndrome}</div>
-            </div>
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Confidence and priority</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Confidence: {analysis.confidence}</span>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${missionPriorityStyles[analysis.missionPriority]}`}>Priority: {analysis.missionPriority}</span>
+            <div className="rounded-2xl bg-slate-900 p-5 text-white md:col-span-2">
+              <div className="text-sm font-semibold uppercase tracking-wide text-slate-300">Do this first</div>
+              <div className="mt-2 text-3xl font-bold tracking-tight">{analysis.crewBrief.immediateAction}</div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-100 ring-1 ring-white/20">{analysis.crewBrief.scenarioName}</span>
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-100 ring-1 ring-white/20">{analysis.crewBrief.reassessmentText}</span>
               </div>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Immediate action</div>
-              <div className="mt-2 text-lg font-medium text-slate-800">{analysis.executionProtocol.immediateAction}</div>
-              <div className="mt-2 text-sm text-slate-600">Next reassessment: {analysis.executionProtocol.reassessmentHours} hours</div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Current status</div>
+              <div className="mt-2 text-lg font-semibold text-slate-900">{analysis.crewBrief.statusLevel}</div>
             </div>
-            <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
-              <div className="text-sm font-semibold text-slate-900">Internal fusion score</div>
-              <div className="mt-2 flex flex-wrap items-center gap-3">
-                <span className="text-3xl font-bold tracking-tight text-slate-900">{analysis.integratedScore}/100</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Internal model band: {analysis.modelBand}</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Guardrailed band: {analysis.band}</span>
-              </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-                <div className={`h-full ${analysis.band === 'Low' ? 'bg-green-500' : analysis.band === 'Moderate' ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${analysis.integratedScore}%` }} />
-              </div>
-              <div className="mt-2 text-sm text-slate-600">{analysis.neverEventViolations.length ? 'Guardrail override active for safety.' : 'No guardrail override triggered.'}</div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Who to notify</div>
+              <div className="mt-2 text-lg font-semibold text-slate-900">{analysis.crewBrief.notificationTarget}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">What to collect</div>
+              <div className="mt-2 text-sm font-medium text-slate-800">{analysis.crewBrief.collectText}</div>
+            </div>
+            <div className={`rounded-2xl p-4 ${analysis.executionProtocol.redFlags.length ? 'bg-red-50 text-red-900 ring-1 ring-red-100' : 'bg-slate-50 text-slate-800'}`}>
+              <div className="text-xs font-semibold uppercase tracking-wide">What not to ignore</div>
+              <div className="mt-2 text-sm font-medium">{analysis.crewBrief.cautionText}</div>
+            </div>
+          </div>
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Checklist</div>
+            <div className="mt-3 space-y-3">
+              {analysis.crewActionSteps.map((step, index) => (
+                <div key={`crew-step-${index}`} className="flex gap-3 rounded-2xl bg-slate-50 p-4">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">{index + 1}</div>
+                  <div className="text-base font-semibold text-slate-900">{step}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         <div className={card}>
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <h2 className="text-xl font-semibold">Why this matters</h2>
+          <p className="mt-1 text-sm text-slate-600">Plain-language reason for the crew. The detailed medical evidence stays in the CMO panel.</p>
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Main reasons</div>
+              <div className="mt-2 space-y-2">
+                {analysis.crewWhy.drivers.map((item, index) => <div key={`crew-driver-${index}`} className="rounded-xl bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">{item}</div>)}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Warning signs</div>
+              <div className="mt-2 space-y-2">
+                {analysis.crewWhy.redFlags.length
+                  ? analysis.crewWhy.redFlags.map((item, index) => <div key={`crew-red-${index}`} className="rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-800 ring-1 ring-red-100">{item}</div>)
+                  : <div className="rounded-xl bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">No active warning signs now.</div>}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reduce uncertainty</div>
+              <div className="mt-2 space-y-2">
+                {analysis.crewWhy.uncertaintyReducers.map((item, index) => <div key={`crew-reduce-${index}`} className="rounded-xl bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">{item}</div>)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>For CMO: scenario matrix</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand</span>
+          </summary>
+          <div className="mb-4 mt-5 flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold">Scenario matrix</h2>
               <p className="mt-1 text-sm text-slate-600">Cards stay compact by default. Expand a field to inspect criteria, required inputs, actions, guardrails, or validation targets.</p>
@@ -1515,10 +1701,14 @@ export default function CDSSInfectionRiskPrototype() {
               </div>
             ))}
           </div>
-        </div>
+        </details>
 
-        <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">DAG reasoning layer</h2>
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>Evidence / DAG details</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand</span>
+          </summary>
+          <h2 className="mb-4 mt-5 text-xl font-semibold">DAG reasoning layer</h2>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <label className="block space-y-1 md:w-[340px]">
               <span className="text-sm font-medium text-slate-700">DAG focus</span>
@@ -1591,10 +1781,14 @@ export default function CDSSInfectionRiskPrototype() {
               className="h-[560px] w-full border-0"
             />
           </div>
-        </div>
+        </details>
 
-        <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Agent reasoning traces</h2>
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>For CMO: agent reasoning traces</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand</span>
+          </summary>
+          <h2 className="mb-4 mt-5 text-xl font-semibold">Agent reasoning traces</h2>
           <div className="space-y-4">
             {analysis.agentHandoffs.map((handoff, index) => (
               <div key={`${handoff.agent}-trace-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -1628,12 +1822,76 @@ export default function CDSSInfectionRiskPrototype() {
               </div>
             ))}
           </div>
-        </div>
+        </details>
       </div>
 
       <div className="space-y-6 xl:col-span-2">
         <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Dynamic medical operations flow</h2>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">For CMO / medical review</div>
+              <h2 className="mt-1 text-2xl font-semibold">Medical details</h2>
+              <p className="mt-2 text-sm text-slate-600">Clinical terminology and evidence are grouped here so the crew checklist stays simple.</p>
+            </div>
+            <div className={`rounded-2xl border px-3 py-1 text-sm font-semibold ${severityStyles[analysis.medicalBrief.triageBand]}`}>{analysis.medicalBrief.triageBand} triage</div>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Routed scenario</div>
+              <div className="mt-2 text-base font-semibold text-slate-900">{analysis.medicalBrief.routedScenario}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Syndrome support label</div>
+              <div className="mt-2 text-base font-semibold text-slate-900">{analysis.medicalBrief.syndromeSupportLabel}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Confidence and priority</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">Confidence: {analysis.medicalBrief.confidence}</span>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${missionPriorityStyles[analysis.medicalBrief.missionPriority]}`}>Priority: {analysis.medicalBrief.missionPriority}</span>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Internal model</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">{analysis.medicalBrief.internalFusionScore}/100</span>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">{analysis.medicalBrief.internalModelBand} pre-guardrail</span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">DAGs and red flags</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {analysis.medicalBrief.dagModels.map((dag) => <span key={`medical-dag-${dag}`} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">{dag}</span>)}
+              {analysis.medicalBrief.redFlags.length
+                ? analysis.medicalBrief.redFlags.map((flag, index) => <span key={`medical-red-${index}`} className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">{flag}</span>)
+                : <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">No active red flags</span>}
+            </div>
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Node targets in {activeDagFocus}</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {availableDagNodes.map((nodeName) => <span key={`medical-node-${nodeName}`} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">{nodeName}</span>)}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Never-event status</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {analysis.medicalBrief.neverEventViolations.length
+                  ? analysis.medicalBrief.neverEventViolations.map((rule, index) => <span key={`medical-never-${index}`} className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">{rule}</span>)
+                  : <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">No active never-event violations</span>}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>For CMO: medical operations flow</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand</span>
+          </summary>
+          <h2 className="mb-4 mt-5 text-xl font-semibold">Dynamic medical operations flow</h2>
           <div className="space-y-3">
             {analysis.conopsFlow.map((step, index) => (
               <div key={`${step.step}-event-${index}`} className="rounded-2xl bg-slate-50 p-4">
@@ -1645,10 +1903,14 @@ export default function CDSSInfectionRiskPrototype() {
               </div>
             ))}
           </div>
-        </div>
+        </details>
 
-        <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Protocol actions and guardrails</h2>
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>For CMO: protocol actions and guardrails</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand</span>
+          </summary>
+          <h2 className="mb-4 mt-5 text-xl font-semibold">Protocol actions and guardrails</h2>
           <div className="space-y-3">
             {analysis.executionProtocol.actions.map((action, index) => (
               <div key={`protocol-action-${index}`} className="rounded-2xl bg-slate-50 p-4">
@@ -1680,10 +1942,14 @@ export default function CDSSInfectionRiskPrototype() {
               ))}
             </div>
           </details>
-        </div>
+        </details>
 
-        <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Causal uncertainty map</h2>
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>Why the system says this</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand</span>
+          </summary>
+          <h2 className="mb-4 mt-5 text-xl font-semibold">Causal uncertainty map</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Alternative explanations</div>
@@ -1698,10 +1964,14 @@ export default function CDSSInfectionRiskPrototype() {
               </ul>
             </div>
           </div>
-        </div>
+        </details>
 
-        <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Study readiness</h2>
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>Research validation</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand</span>
+          </summary>
+          <h2 className="mb-4 mt-5 text-xl font-semibold">Study readiness</h2>
           <div className="rounded-2xl bg-slate-50 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">MVP claim</div>
             <div className="mt-2 text-sm text-slate-700">{analysis.studyReadiness.mvpClaim}</div>
@@ -1752,18 +2022,16 @@ export default function CDSSInfectionRiskPrototype() {
               </table>
             </div>
           </details>
-        </div>
+        </details>
 
-        <div className={card}>
-          <h2 className="mb-4 text-xl font-semibold">Final recommendation</h2>
-          <details className="rounded-2xl border border-slate-200 bg-slate-50">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-slate-800">
-              <span>Structured recommendation object</span>
-              <span className="rounded-full bg-white px-3 py-1 text-xs text-slate-600 ring-1 ring-slate-200">expand JSON</span>
-            </summary>
-            <pre className="whitespace-pre-wrap border-t border-slate-200 p-4 text-xs leading-6 text-slate-700">{JSON.stringify(analysis.finalRecommendationObject, null, 2)}</pre>
-          </details>
-        </div>
+        <details className={card}>
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-800">
+            <span>Final recommendation object</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">expand JSON</span>
+          </summary>
+          <h2 className="mb-4 mt-5 text-xl font-semibold">Final recommendation</h2>
+          <pre className="whitespace-pre-wrap rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs leading-6 text-slate-700">{JSON.stringify(analysis.finalRecommendationObject, null, 2)}</pre>
+        </details>
       </div>
     </>
   );
@@ -1843,19 +2111,19 @@ export default function CDSSInfectionRiskPrototype() {
         <div className={card}>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Scenario-based MVP</div>
-              <h1 className="text-3xl font-bold tracking-tight">Remote Infection-Event Triage CDSS</h1>
-              <p className="mt-2 max-w-4xl text-sm text-slate-600">{analysis.mvpScope.claim} The CDSS returns bounded onboard actions, while the DAG panel explains upstream drivers, missing information, and uncertainty.</p>
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Crew-first decision support</div>
+              <h1 className="text-3xl font-bold tracking-tight">Crew Health Triage Assistant</h1>
+              <p className="mt-2 max-w-4xl text-sm text-slate-600">Use this screen to decide what to do now, when to recheck, and when to notify medical support. CMO and evidence details stay available below.</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${severityStyles[analysis.band]}`}>{analysis.band} triage</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{analysis.routedScenario.name}</span>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">Recheck {analysis.executionProtocol.reassessmentHours}h</span>
+                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${severityStyles[analysis.band]}`}>{analysis.crewBrief.statusLevel}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{analysis.crewBrief.scenarioName}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{analysis.crewBrief.reassessmentText}</span>
               </div>
             </div>
             <div className="flex flex-wrap gap-2 lg:max-w-xl lg:justify-end">
               {Object.entries(PRESETS).map(([key, preset]) => {
                 const isSelected = state.label === preset.label;
-                const mappedScenario = preset.targetScenarioFamily ? SCENARIO_LIBRARY[preset.targetScenarioFamily]?.name : '';
+                const mappedScenario = preset.targetScenarioFamily ? crewScenarioName(SCENARIO_LIBRARY[preset.targetScenarioFamily]) : '';
                 return (
                   <button key={key} type="button" onClick={() => loadPreset(key)} className={`rounded-2xl px-4 py-2 text-left text-sm font-medium ${isSelected ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
                     <span className="block">{preset.label}</span>
@@ -1868,7 +2136,7 @@ export default function CDSSInfectionRiskPrototype() {
           <div className="mt-5 flex flex-col gap-3 border-t border-slate-200 pt-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap gap-2">
               {[
-                { id: 'event', label: 'Event Management' },
+                { id: 'event', label: 'Crew Triage' },
                 { id: 'surveillance', label: 'Surveillance' },
                 { id: 'communication', label: 'Communication' },
               ].map((tab) => (
