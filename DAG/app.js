@@ -941,6 +941,59 @@ function nodeMatchesSearch(nodeId) {
   return !currentNodeSearch || nodeId.toLowerCase().includes(currentNodeSearch);
 }
 
+function findFirstMatchingNodeId(graph, query) {
+  if (!graph || !query) {
+    return null;
+  }
+
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return null;
+  }
+
+  const exactMatch = graph.nodes.find((node) => node.id.toLowerCase() === normalizedQuery);
+  if (exactMatch) {
+    return exactMatch.id;
+  }
+
+  const partialMatch = graph.nodes.find((node) => node.id.toLowerCase().includes(normalizedQuery));
+  return partialMatch ? partialMatch.id : null;
+}
+
+function centerNodeInViewport(nodeId, options = {}) {
+  if (!graphCanvas || !nodeId) {
+    return;
+  }
+
+  const {
+    minZoom = 1.4,
+    behavior = "smooth",
+    allowZoom = true,
+  } = options;
+
+  if (allowZoom && currentZoom < minZoom) {
+    currentZoom = clampZoom(minZoom);
+    renderGraph();
+  }
+
+  const viewport = graphCanvas.closest(".graph-wrap");
+  const nodeElement = graphCanvas.querySelector(`.node-shape[data-node="${CSS.escape(nodeId)}"]`);
+  if (!viewport || !nodeElement) {
+    return;
+  }
+
+  const viewportRect = viewport.getBoundingClientRect();
+  const nodeRect = nodeElement.getBoundingClientRect();
+  const deltaX = nodeRect.left - viewportRect.left + nodeRect.width / 2 - viewport.clientWidth / 2;
+  const deltaY = nodeRect.top - viewportRect.top + nodeRect.height / 2 - viewport.clientHeight / 2;
+
+  viewport.scrollBy({
+    left: deltaX,
+    top: deltaY,
+    behavior,
+  });
+}
+
 function nodeIsNeighbor(nodeId) {
   if (!selectedNodeId) {
     return false;
@@ -1058,7 +1111,19 @@ if (doc) {
 
   nodeSearch.addEventListener("input", () => {
     currentNodeSearch = nodeSearch.value.trim().toLowerCase();
+    if (currentNodeSearch) {
+      const matchedNodeId = findFirstMatchingNodeId(currentGraph, currentNodeSearch);
+      if (matchedNodeId) {
+        selectedNodeId = matchedNodeId;
+      }
+    }
     applyFilters(graphNodeMap(currentGraph));
+    updateInspector();
+    syncNodeParamWithSelection();
+
+    if (selectedNodeId && currentNodeSearch && nodeMatchesSearch(selectedNodeId)) {
+      centerNodeInViewport(selectedNodeId, { minZoom: 1.4, behavior: "smooth", allowZoom: true });
+    }
   });
 
   clearNodeSelection.addEventListener("click", () => {
@@ -1099,3 +1164,25 @@ if (doc) {
 }
 
 export { computeGraphLayout, computeStructuredGraphLayout, computePaperGraphLayout, measureNode, wrapLabel };
+
+document.getElementById('download-dag').addEventListener('click', () => {
+    const svgElement = document.querySelector('svg');
+    const serializer = new XMLSerializer();
+    const source = '<?xml version="1.0" standalone="no"?>\r\n' + serializer.serializeToString(svgElement);
+    
+    const image = new Image();
+    image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(source);
+    
+    image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = svgElement.clientWidth;
+        canvas.height = svgElement.clientHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(image, 0, 0);
+        
+        const link = document.createElement('a');
+        link.download = 'nasa-dag-export.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
+});
