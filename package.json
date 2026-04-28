@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build && node scripts/validate-appendix-c-evidence.mjs && node scripts/copy-dag-catalog.mjs",
     "preview": "vite preview",
-    "validate:appendix-c-evidence": "node scripts/validate-appendix-c-evidence.mjs"
+    "validate:appendix-c-evidence": "node scripts/validate-appendix-c-evidence.mjs",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@xyflow/react": "^12.10.1",
@@ -17,6 +19,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^3.2.4"
   }
 }

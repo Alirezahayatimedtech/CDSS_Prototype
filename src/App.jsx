@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import CDSSInfectionRiskPrototype from '../cdss_infection_risk_prototype.jsx';
+import SpaceAgentPrototype from './spaceagent/SpaceAgentPrototype.jsx';
 
 const workspaces = [
   {
@@ -11,6 +12,11 @@ const workspaces = [
     id: 'infection',
     label: 'Infection CDSS',
     description: 'Existing infection-risk prototype preserved as a second workspace.',
+  },
+  {
+    id: 'spaceagent',
+    label: 'SpaceAgent',
+    description: 'Paper-aligned agentic CDSS prototype with planner, executor, verifier, guardrails, and validation views.',
   },
 ];
 
@@ -93,8 +99,8 @@ export default function App() {
                 Mission risk interfaces for NASA health-system reasoning.
               </h1>
               <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600">
-                This repo now ships two workspaces: a new interactive SANS causal graph and the existing
-                infection-risk decision-support prototype.
+                This repo now ships three workspaces: the Appendix C DAG catalog, the existing infection-risk
+                prototype, and the new SpaceAgent research console for agentic space-medicine decision support.
               </p>
             </div>
 
@@ -121,7 +127,9 @@ export default function App() {
           </div>
         </div>
 
-        {workspace === 'sans' ? <LegacyDagCatalog /> : <CDSSInfectionRiskPrototype />}
+        {workspace === 'sans' && <LegacyDagCatalog />}
+        {workspace === 'infection' && <CDSSInfectionRiskPrototype />}
+        {workspace === 'spaceagent' && <SpaceAgentPrototype />}
       </div>
     </div>
   );
